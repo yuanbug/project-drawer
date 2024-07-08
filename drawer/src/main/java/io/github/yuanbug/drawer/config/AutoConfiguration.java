@@ -52,7 +52,7 @@ public class AutoConfiguration {
     public JavaParser javaParser(TypeSolver javaParserTypeSolver) {
         ParserConfiguration configuration = new ParserConfiguration();
         configuration.setSymbolResolver(new JavaSymbolSolver(javaParserTypeSolver));
-        configuration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+        configuration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21);
         return new JavaParser(configuration);
     }
 

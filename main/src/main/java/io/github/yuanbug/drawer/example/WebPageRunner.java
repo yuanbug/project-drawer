@@ -26,9 +26,7 @@ public class WebPageRunner {
 
     @SneakyThrows
     private static void runVue() {
-        // 休眠一下，让java服务先启动，避免vite启动过快连接不到java报代理错误 TODO 改用事件监听器启动
-        log.info("3秒后启动前端");
-        sleep(3000);
+        log.info("正在启动前端");
         Path vueProjectPath = Path.of(System.getProperty("user.dir"), "main", "src/main/web/graph-viewer");
         Process process = new ProcessBuilder().command("cmd", "/C", "cd \"%s\" && npm install && npm run dev".formatted(vueProjectPath)).start();
 
