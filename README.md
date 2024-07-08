@@ -17,7 +17,7 @@
    >
    > ![标记排除](./docs/标记排除.png)
 
-4. 为 `main` 模块的 `ServerApplication` 启动类添加 VM 参数 `work-path`，取值为你要分析的项目的路径
+4. 为 `main` 模块的 `ServerApplication` 启动类添加 VM 参数 `work-path`，取值为你要分析的项目的路径。如果你的项目不是 maven 项目，请参照[下文](#配置)进行模块配置。
    > 例如 `-Dwork-path=C:\code\projects\jackson`
    > 
    > 你也可以直接修改 `MyAppConfig` 类的构造方法，将目标项目的路径传给父类构造方法 `super(xxxxxx)` 
