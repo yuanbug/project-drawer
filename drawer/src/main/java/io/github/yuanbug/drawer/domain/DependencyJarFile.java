@@ -1,4 +1,4 @@
-package io.github.yuanbug.drawer.parser.maven;
+package io.github.yuanbug.drawer.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

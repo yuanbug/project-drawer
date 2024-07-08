@@ -2,9 +2,9 @@ package io.github.yuanbug.drawer.config;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.yuanbug.drawer.domain.CodeModule;
+import io.github.yuanbug.drawer.domain.DependencyJarFile;
 import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
 import io.github.yuanbug.drawer.parser.ParserConstants;
-import io.github.yuanbug.drawer.parser.maven.DependencyJarFile;
 import io.github.yuanbug.drawer.parser.maven.MavenModuleParser;
 import lombok.extern.slf4j.Slf4j;
 

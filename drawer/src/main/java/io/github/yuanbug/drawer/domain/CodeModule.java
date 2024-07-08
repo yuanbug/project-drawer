@@ -1,6 +1,5 @@
 package io.github.yuanbug.drawer.domain;
 
-import io.github.yuanbug.drawer.parser.maven.DependencyJarFile;
 import lombok.Builder;
 import lombok.Data;
 

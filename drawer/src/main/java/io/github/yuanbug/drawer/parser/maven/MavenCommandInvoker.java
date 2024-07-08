@@ -1,5 +1,6 @@
 package io.github.yuanbug.drawer.parser.maven;
 
+import io.github.yuanbug.drawer.domain.DependencyJarFile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
