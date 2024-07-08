@@ -1,0 +1,14 @@
+{
+  "id": "io.github.yuanbug.drawer.test.simple.SimpleUtils#getRandomString()",
+  "dependencies": [
+    {
+      "callee": {
+        "id": "org.apache.commons.lang3.RandomStringUtils#randomAlphanumeric(int)",
+        "dependencies": [],
+        "overrides": []
+      },
+      "callingType": "LIBRARY"
+    }
+  ],
+  "overrides": []
+}

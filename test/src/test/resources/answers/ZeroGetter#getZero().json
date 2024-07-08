@@ -1,0 +1,31 @@
+{
+  "id": "io.github.yuanbug.drawer.test.impl.ZeroGetter#getZero()",
+  "dependencies": [],
+  "overrides": [
+    {
+      "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterTwo#getZero()",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "id": "io.github.yuanbug.drawer.test.impl.AbstractZeroGetter#getZero()",
+      "dependencies": [
+        {
+          "callee": {
+            "id": "io.github.yuanbug.drawer.test.impl.AbstractZeroGetter#doGetZero()",
+            "dependencies": [],
+            "overrides": [
+              {
+                "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterOne#doGetZero()",
+                "dependencies": [],
+                "overrides": []
+              }
+            ]
+          },
+          "callingType": "SELF"
+        }
+      ],
+      "overrides": []
+    }
+  ]
+}

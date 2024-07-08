@@ -1,0 +1,28 @@
+{
+  "id": "io.github.yuanbug.drawer.test.simple.SimpleClass#recurse1(int)",
+  "dependencies": [
+    {
+      "callee": {
+        "id": "io.github.yuanbug.drawer.test.simple.SimpleClass#recurse2(int)",
+        "dependencies": [
+          {
+            "callee": {
+              "id": "io.github.yuanbug.drawer.test.simple.SimpleClass#recurse3(int)",
+              "dependencies": [
+                {
+                  "callingType": "SELF",
+                  "recursiveAt": "io.github.yuanbug.drawer.test.simple.SimpleClass#recurse1(int)"
+                }
+              ],
+              "overrides": []
+            },
+            "callingType": "SELF"
+          }
+        ],
+        "overrides": []
+      },
+      "callingType": "SELF"
+    }
+  ],
+  "overrides": []
+}

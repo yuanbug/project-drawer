@@ -1,0 +1,65 @@
+{
+  "id": "io.github.yuanbug.drawer.test.simple.SimpleClass#forLoop()",
+  "dependencies": [
+    {
+      "callee": {
+        "id": "java.io.PrintStream#println(java.lang.String)",
+        "dependencies": [],
+        "overrides": []
+      },
+      "callingType": "JDK"
+    },
+    {
+      "callee": {
+        "id": "io.github.yuanbug.drawer.test.simple.SimpleClass#callUtils()",
+        "dependencies": [
+          {
+            "callee": {
+              "id": "io.github.yuanbug.drawer.test.simple.SimpleUtils#getRandomString()",
+              "dependencies": [
+                {
+                  "callee": {
+                    "id": "org.apache.commons.lang3.RandomStringUtils#randomAlphanumeric(int)",
+                    "dependencies": [],
+                    "overrides": []
+                  },
+                  "callingType": "LIBRARY"
+                }
+              ],
+              "overrides": []
+            },
+            "callingType": "BROTHER"
+          }
+        ],
+        "overrides": []
+      },
+      "callingType": "SELF"
+    },
+    {
+      "callee": {
+        "id": "java.io.PrintStream#println(double)",
+        "dependencies": [],
+        "overrides": []
+      },
+      "callingType": "JDK"
+    },
+    {
+      "callee": {
+        "id": "io.github.yuanbug.drawer.test.simple.SimpleUtils#getRandomDouble()",
+        "dependencies": [
+          {
+            "callee": {
+              "id": "java.lang.Math#random()",
+              "dependencies": [],
+              "overrides": []
+            },
+            "callingType": "JDK"
+          }
+        ],
+        "overrides": []
+      },
+      "callingType": "BROTHER"
+    }
+  ],
+  "overrides": []
+}
