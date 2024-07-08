@@ -15,7 +15,7 @@
 3. 下载本项目源码，使用 IntelliJ IDEA 打开。
    > 本项目使用 `lombok`，你的 IDEA 需要有 `lombok` 插件。
 
-4. （可选）将 `main` 模块的 `src/main/web` 目录标记为已排除，防止 IDEA 对 `node_modules` 目录的文件构建索引，避免卡死。
+4. （可选）将 `main` 模块的 `src/main/web` 目录标记为已排除，防止 IDEA 对 `node_modules` 目录构建索引而导致卡死。
    > 右键点击目录 -> Mark Directory as（将目录标记为） -> Excluded（已排除）
    >
    > ![标记排除](./docs/标记排除.png)
@@ -25,7 +25,7 @@
    > 
    > 你也可以直接修改 `MyAppConfig` 类的构造方法，将目标项目的路径传给父类构造方法 `super(xxxxxx)` 
 
-6. 如果你的项目不是 maven 项目，请参照[下文](#模块配置)进行模块配置。
+6. 如果你的项目不是 maven 项目，请参照[下文](#配置要解析的代码模块)进行模块配置。
 
 7. 启动项目（`ServerApplication`），待控制台输出前端访问地址（[http://localhost:5173](http://localhost:5173)）后通过浏览器访问。
    > ![控制台输出前端访问地址](./docs/控制台输出前端访问地址.png)
@@ -83,9 +83,9 @@ public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfi
 
 ### 配置子类解析策略
 
-默认情况下，本工具在判断一个方法是否存在覆写方法时，会判断方法所在类是否只有一个子类，如果是，并且这个子类中存在相同签名的方法，则会对这个覆写方法进行解析和绘制。
+默认情况下，本工具在判断一个方法是否存在覆写方法时，会判断方法所在类是否只有一个直接子类，如果是，并且这个子类中存在相同签名的方法，则会对这个覆写方法进行解析和绘制。
 
-如果方法所在类不存在子类，或者子类超过一个，就不会解析和绘制覆写方法。
+如果方法所在类不存在子类，或者直接子类超过一个，就不会解析和绘制覆写方法。
 
 你可以通过在 `MyAppConfig` 中实现 `public BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser()` 方法来替换该策略，例如：
 
@@ -95,7 +95,7 @@ import io.github.yuanbug.drawer.parser.ParserConstants;
 public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfig {
     @Override
     public BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
-        // 这个策略会返回所有子类
+        // 这个策略会返回所有直接子类
         return ParserConstants.ALL_DIRECTLY_SUB_TYPE_PARSER;
     }
 }
