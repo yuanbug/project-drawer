@@ -3,6 +3,7 @@ package io.github.yuanbug.drawer.example;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.Scanner;
@@ -11,7 +12,7 @@ import java.util.Scanner;
  * @author yuanbug
  */
 @Slf4j
-//@Component
+@Component
 public class WebPageRunner {
 
     @PostConstruct
