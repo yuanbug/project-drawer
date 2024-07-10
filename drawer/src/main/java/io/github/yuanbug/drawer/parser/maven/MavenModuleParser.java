@@ -37,7 +37,6 @@ public class MavenModuleParser {
         return moduleDirs.stream()
                 .map(dir -> parseModule(dir, parseDependency))
                 .filter(Objects::nonNull)
-                .filter(module -> null != module.getSrcMainJavaPath())
                 .filter(predicate)
                 .toList();
     }
@@ -61,6 +60,9 @@ public class MavenModuleParser {
         JsonNode pom = xmlMapper.readTree(pomXmlFile);
         String moduleName = JacksonUtils.getInTurns(pom, dir::getName, JsonNode::asText, "name", "artifactId");
         Path srcPath = getSrcPath(dir);
+        if (null == srcPath) {
+            return null;
+        }
         return CodeModule.builder()
                 .name(moduleName)
                 .srcMainJavaPath(srcPath)

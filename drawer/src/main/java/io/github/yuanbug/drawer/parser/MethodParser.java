@@ -173,19 +173,28 @@ public class MethodParser {
                 .build();
     }
 
-    protected MethodCallingType judgeMethodCallingType(ResolvedTypeDeclaration calleeType, TypeDeclaration<?> typeDeclaration) {
+    protected MethodCallingType judgeMethodCallingType(ResolvedTypeDeclaration calleeType, TypeDeclaration<?> callerType) {
         if (ParserConstants.isJdkType(calleeType)) {
             return MethodCallingType.JDK;
         }
-        if (calleeType.equals(AstUtils.tryResolveTypeDeclaration(typeDeclaration))) {
+        if (calleeType.equals(AstUtils.tryResolveTypeDeclaration(callerType))) {
             return MethodCallingType.SELF;
         }
+        if (context.isAssignable(calleeType, AstUtils.getName(callerType))) {
+            return MethodCallingType.SUPER;
+        }
         String calleeModule = context.getModuleNameByTypeName(AstUtils.getName(calleeType));
-        String callerModule = context.getModuleNameByTypeName(AstUtils.getName(typeDeclaration));
+        String callerModule = context.getModuleNameByTypeName(AstUtils.getName(callerType));
         if (StringUtils.isNotBlank(calleeModule) && StringUtils.isNotBlank(callerModule)) {
             return Objects.equals(calleeModule, callerModule) ? MethodCallingType.BROTHER : MethodCallingType.OUT;
         }
         return MethodCallingType.LIBRARY;
+    }
+
+    protected MethodCallingType judgeMethodCallingType(String calleeTypeName, TypeDeclaration<?> callerType) {
+        return context.trySolveReferenceTypeDeclaration(calleeTypeName)
+                .map(calleeType -> judgeMethodCallingType(calleeType, callerType))
+                .orElseGet(() -> calleeTypeName.equals(AstUtils.getName(callerType)) ? MethodCallingType.SELF : MethodCallingType.LIBRARY);
     }
 
     protected List<MethodInfo> parseOverrides(MethodDeclaration method) {
@@ -210,25 +219,26 @@ public class MethodParser {
             return null;
         }
         MethodInfo callee = methodCalling.getCallee();
-        if (null == callee) {
-            return null;
+        if (null == callee || null != callee.getDeclaration()) {
+            return methodCalling;
         }
-        if (null == callee.getDeclaration()) {
-            findMethod(callee.getId()).ifPresent(declaration -> {
-                callee.setDeclaration(declaration);
-                callee.setId(MethodId.from(declaration));
-                TypeDeclaration<?> declaringType = AstUtils.findDeclaringType(declaration);
-                ResolvedTypeDeclaration calleeType = AstUtils.tryResolveTypeDeclaration(declaringType);
-                if (null != calleeType) {
-                    methodCalling.setCallingType(judgeMethodCallingType(calleeType, AstUtils.findDeclaringType(callerMethod)));
-                }
-                try {
-                    MethodInfo methodInfo = parseMethod(callee.getId().toString());
-                    callee.setDependencies(methodInfo.getDependencies());
-                    callee.setOverrides(methodInfo.getOverrides());
-                } catch (Exception ignored) {}
-            });
+        MethodDeclaration methodDeclaration = findMethod(callee.getId()).orElse(null);
+        if (null == methodDeclaration) {
+            methodCalling.setCallingType(judgeMethodCallingType(callee.getId().getClassName(), AstUtils.findDeclaringType(callerMethod)));
+            return methodCalling;
         }
+        callee.setDeclaration(methodDeclaration);
+        callee.setId(MethodId.from(methodDeclaration));
+        TypeDeclaration<?> declaringType = AstUtils.findDeclaringType(methodDeclaration);
+        ResolvedTypeDeclaration calleeType = AstUtils.tryResolveTypeDeclaration(declaringType);
+        if (null != calleeType) {
+            methodCalling.setCallingType(judgeMethodCallingType(calleeType, AstUtils.findDeclaringType(callerMethod)));
+        }
+        try {
+            MethodInfo methodInfo = parseMethod(callee.getId().toString());
+            callee.setDependencies(methodInfo.getDependencies());
+            callee.setOverrides(methodInfo.getOverrides());
+        } catch (Exception ignored) {}
         return methodCalling;
     }
 

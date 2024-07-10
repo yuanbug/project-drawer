@@ -314,12 +314,7 @@ public class AstIndexContext {
         if (null == expectedSuperType) {
             return false;
         }
-        ResolvedTypeDeclaration superType = AstUtils.tryResolveTypeDeclaration(expectedSuperType);
-        if (superType instanceof ResolvedReferenceType referenceType) {
-            return isAssignable(referenceType, expectedSubTypeName);
-        }
-        // TODO 完善分支
-        return AstUtils.getName(expectedSuperType).equals(expectedSubTypeName);
+        return isAssignable(AstUtils.tryResolveTypeDeclaration(expectedSuperType), expectedSubTypeName);
     }
 
     public boolean isAssignable(Class<?> expectedSuperType, String expectedSubTypeName) {
@@ -334,6 +329,17 @@ public class AstIndexContext {
             return isAssignable(expectedSuperType.getTypeDeclaration(), expectedSubTypeName);
         }
         return expectedSuperType.getClassQualifiedName().equals(expectedSubTypeName);
+    }
+
+    public boolean isAssignable(ResolvedTypeDeclaration expectedSuperType, String expectedSubTypeName) {
+        if (null == expectedSuperType) {
+            return false;
+        }
+        if (expectedSuperType instanceof ResolvedReferenceType referenceType) {
+            return isAssignable(referenceType, expectedSubTypeName);
+        }
+        // TODO 完善分支
+        return AstUtils.getName(expectedSuperType).equals(expectedSubTypeName);
     }
 
     public Stream<TypeDeclaration<?>> getAllTypeDeclaration() {
