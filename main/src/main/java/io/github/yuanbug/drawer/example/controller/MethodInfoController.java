@@ -37,16 +37,4 @@ public class MethodInfoController {
         }
     }
 
-    @GetMapping("/fuck-all")
-    public void fuckAll() {
-        getMethodList().stream()
-                .map(MethodListItemView::getMethodId)
-                .forEach(methodId -> {
-                    long from = System.currentTimeMillis();
-                    getMethodLink(methodId);
-                    log.info("{} : {}", methodId, System.currentTimeMillis() - from);
-                    log.info("===============================================================");
-                });
-    }
-
 }
