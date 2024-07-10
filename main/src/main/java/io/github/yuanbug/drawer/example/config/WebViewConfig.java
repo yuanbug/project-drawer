@@ -2,7 +2,7 @@ package io.github.yuanbug.drawer.example.config;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
 import io.github.yuanbug.drawer.domain.view.graph.method.ArgumentView;
@@ -75,7 +75,7 @@ public interface WebViewConfig {
                 .build();
     }
 
-    default Function<AstIndexContext, List<MethodListItemView>> getMethodListLoader() {
+    default Function<AstIndex, List<MethodListItemView>> getMethodListLoader() {
         return GET_ALL_PUBLIC_INSTANCE_METHODS;
     }
 

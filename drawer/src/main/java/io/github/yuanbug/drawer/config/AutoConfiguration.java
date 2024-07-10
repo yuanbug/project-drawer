@@ -8,7 +8,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.utils.SearchUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -57,9 +57,9 @@ public class AutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(AstIndexContext.class)
-    public AstIndexContext astIndexContext(AstParsingConfig parsingConfig, JavaParser javaParser, TypeSolver javaParserTypeSolver) {
-        AstIndexContext context = new AstIndexContext(javaParser, javaParserTypeSolver);
+    @ConditionalOnMissingBean(AstIndex.class)
+    public AstIndex astIndexContext(AstParsingConfig parsingConfig, JavaParser javaParser, TypeSolver javaParserTypeSolver) {
+        AstIndex astIndex = new AstIndex(javaParser, javaParserTypeSolver);
         parsingConfig.getModules().forEach(
                 module -> SearchUtils.bfsAll(
                                 module.srcMainJavaPath.toFile(),
@@ -68,10 +68,10 @@ public class AutoConfiguration {
                                         ? Optional.ofNullable(file.listFiles()).map(Arrays::asList).orElseGet(Collections::emptyList)
                                         : Collections.emptyList()
                         )
-                        .forEach(javaFile -> context.addFileToIndex(javaFile, module))
+                        .forEach(javaFile -> astIndex.addFileToIndex(javaFile, module))
         );
-        context.seal();
-        return context;
+        astIndex.seal();
+        return astIndex;
     }
 
 }

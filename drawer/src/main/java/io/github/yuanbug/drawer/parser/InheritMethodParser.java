@@ -5,7 +5,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.ast.JavaTypeInfo;
 import io.github.yuanbug.drawer.domain.info.MethodInheritLinkInfo;
 import io.github.yuanbug.drawer.utils.AstUtils;
@@ -20,17 +20,17 @@ import java.util.Objects;
 @AllArgsConstructor
 public class InheritMethodParser {
 
-    private final AstIndexContext context;
+    private final AstIndex astIndex;
 
     public MethodInheritLinkInfo parseParentMethods(MethodDeclaration toParse) {
         TypeDeclaration<?> declaringType = AstUtils.findDeclaringType(toParse);
 
-        List<MethodDeclaration> fromExtend = new SuperClassIterator(declaringType, context).stream()
+        List<MethodDeclaration> fromExtend = new SuperClassIterator(declaringType, astIndex).stream()
                 .flatMap(type -> type.findAll(MethodDeclaration.class).stream())
                 .filter(method -> isAssignable(method, toParse))
                 .toList();
 
-        List<MethodDeclaration> fromImpl = context.getAllParentTypes(declaringType).values().stream()
+        List<MethodDeclaration> fromImpl = astIndex.getAllParentTypes(declaringType).values().stream()
                 .map(JavaTypeInfo::getTypeDeclaration)
                 .filter(ClassOrInterfaceDeclaration.class::isInstance)
                 .map(ClassOrInterfaceDeclaration.class::cast)
@@ -43,7 +43,7 @@ public class InheritMethodParser {
                 .current(toParse)
                 .fromExtend(fromExtend)
                 .fromImpl(fromImpl)
-                .context(context)
+                .astIndex(astIndex)
                 .build();
     }
 
@@ -67,7 +67,7 @@ public class InheritMethodParser {
     }
 
     private boolean isAssignable(Type superType, Type subType) {
-        if (context.isAssignable(superType, AstUtils.getName(subType))) {
+        if (astIndex.isAssignable(superType, AstUtils.getName(subType))) {
             return true;
         }
         ResolvedType resolvedSuperType = AstUtils.tryResolve(superType);

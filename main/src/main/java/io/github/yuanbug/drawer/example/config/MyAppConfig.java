@@ -2,7 +2,7 @@ package io.github.yuanbug.drawer.example.config;
 
 import com.github.javaparser.ast.body.TypeDeclaration;
 import io.github.yuanbug.drawer.config.DefaultAstParsingConfig;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
 import lombok.Data;
@@ -23,7 +23,7 @@ public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfi
     }
 
     @Override
-    public BiPredicate<MethodCalling, AstIndexContext> getMethodCallingFilter() {
+    public BiPredicate<MethodCalling, AstIndex> getMethodCallingFilter() {
         return (methodCalling, context) -> {
             MethodInfo callee = methodCalling.getCallee();
             if (null == callee) {

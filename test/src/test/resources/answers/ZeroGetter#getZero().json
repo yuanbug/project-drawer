@@ -16,6 +16,11 @@
             "dependencies": [],
             "overrides": [
               {
+                "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterWithSuperRecursion#doGetZero()",
+                "dependencies": [],
+                "overrides": []
+              },
+              {
                 "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterOne#doGetZero()",
                 "dependencies": [],
                 "overrides": []
@@ -25,7 +30,18 @@
           "callingType": "SELF"
         }
       ],
-      "overrides": []
+      "overrides": [
+        {
+          "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterWithSuperRecursion#getZero()",
+          "dependencies": [
+            {
+              "callingType": "BROTHER",
+              "recursiveAt": "io.github.yuanbug.drawer.test.impl.AbstractZeroGetter#getZero()"
+            }
+          ],
+          "overrides": []
+        }
+      ]
     }
   ]
 }

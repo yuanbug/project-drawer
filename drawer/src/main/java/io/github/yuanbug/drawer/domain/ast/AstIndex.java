@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.*;
  * @author yuanbug
  */
 @Getter
-public class AstIndexContext {
+public class AstIndex {
 
     /**
      * 类限定名 -> 文件AST信息
@@ -46,7 +46,7 @@ public class AstIndexContext {
     private final JavaParser javaParser;
     private final TypeSolver typeSolver;
 
-    public AstIndexContext(JavaParser javaParser, TypeSolver typeSolver) {
+    public AstIndex(JavaParser javaParser, TypeSolver typeSolver) {
         this.javaParser = javaParser;
         this.typeSolver = typeSolver;
     }

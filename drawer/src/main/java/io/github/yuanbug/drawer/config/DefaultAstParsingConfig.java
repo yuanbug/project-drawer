@@ -3,7 +3,7 @@ package io.github.yuanbug.drawer.config;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.yuanbug.drawer.domain.CodeModule;
 import io.github.yuanbug.drawer.domain.DependencyJarFile;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.parser.ParserConstants;
 import io.github.yuanbug.drawer.parser.maven.MavenModuleParser;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,7 @@ public class DefaultAstParsingConfig implements AstParsingConfig {
     }
 
     @Override
-    public BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
+    public BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
         return ParserConstants.SINGLE_DIRECTLY_SUB_TYPE_PARSER;
     }
 

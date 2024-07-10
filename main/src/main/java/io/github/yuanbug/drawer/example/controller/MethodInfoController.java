@@ -31,10 +31,22 @@ public class MethodInfoController {
     public MethodLinkView getMethodLink(String methodId) {
         try {
             return viewService.getMethodLink(methodId);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("{} 解析异常", methodId, e);
             throw new IllegalStateException("无法解析方法" + methodId);
         }
+    }
+
+    @GetMapping("/fuck-all")
+    public void fuckAll() {
+        getMethodList().stream()
+                .map(MethodListItemView::getMethodId)
+                .forEach(methodId -> {
+                    long from = System.currentTimeMillis();
+                    getMethodLink(methodId);
+                    log.info("{} : {}", methodId, System.currentTimeMillis() - from);
+                    log.info("===============================================================");
+                });
     }
 
 }

@@ -1,7 +1,7 @@
 package io.github.yuanbug.drawer.domain.info;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +25,7 @@ public class MethodInheritLinkInfo {
 
     private List<MethodDeclaration> fromImpl;
 
-    private AstIndexContext context;
+    private AstIndex astIndex;
 
     public boolean isCompatibleMethod(MethodId methodId) {
         if (!current.getNameAsString().equals(methodId.getMethodName())) {
@@ -47,7 +47,7 @@ public class MethodInheritLinkInfo {
     private boolean isParamTypeCompatible(int i, String typeName) {
         return Stream.concat(Stream.of(current), Stream.concat(fromExtend.stream(), fromImpl.stream()))
                 .map(method -> method.getParameter(i).getType())
-                .anyMatch(type -> context.isTypeOf(type, typeName, true));
+                .anyMatch(type -> astIndex.isTypeOf(type, typeName, true));
     }
 
 }

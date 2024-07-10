@@ -21,6 +21,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParse
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistAnnotationDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionAnnotationDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclaration;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionInterfaceDeclaration;
 import io.github.yuanbug.drawer.domain.ast.JavaTypeInfo;
 import javassist.CtClass;
 import lombok.AccessLevel;
@@ -190,8 +191,8 @@ public final class AstUtils {
     }
 
     public static String getName(ResolvedTypeDeclaration typeDeclaration) {
-        if (typeDeclaration instanceof ReflectionClassDeclaration declaration) {
-            return AstUtils.getReflectionClass(declaration).getName();
+        if (typeDeclaration instanceof ReflectionClassDeclaration || typeDeclaration instanceof ReflectionInterfaceDeclaration) {
+            return AstUtils.getReflectionClass(typeDeclaration).getName();
         }
         String qualifiedName = typeDeclaration.getQualifiedName();
         if (isInnerType(typeDeclaration)) {
@@ -215,25 +216,13 @@ public final class AstUtils {
     }
 
     public static boolean isInnerType(ResolvedTypeDeclaration declaration) {
-        String simpleName = declaration.getClass().getSimpleName();
-        if (simpleName.startsWith("JavaParser")) {
-            return checkWhetherInnerTypeForJavaParserType(declaration);
-        }
-        if (!simpleName.startsWith("Javassist")) {
-            return false;
-        }
-        return checkWhetherInnerTypeForJavassistType(declaration);
+        return checkWhetherInnerTypeForJavaParserType(declaration) || checkWhetherInnerTypeForJavassistType(declaration);
     }
 
     private static boolean checkWhetherInnerTypeForJavaParserType(ResolvedTypeDeclaration declaration) {
         try {
-            Field field = declaration.getClass().getDeclaredField("wrappedNode");
-            field.setAccessible(true);
-            Object wrappedNode = field.get(declaration);
-            if (!(wrappedNode instanceof Node node)) {
-                return false;
-            }
-            if (null != AstUtils.tryfindNodeInParent(node, ClassOrInterfaceDeclaration.class)) {
+            Node node = getJavaParserWrappedNode(declaration, Node.class);
+            if (null != node && null != AstUtils.tryfindNodeInParent(node, ClassOrInterfaceDeclaration.class)) {
                 return true;
             }
         } catch (Exception ignored) {}
@@ -242,15 +231,40 @@ public final class AstUtils {
 
     private static boolean checkWhetherInnerTypeForJavassistType(ResolvedTypeDeclaration declaration) {
         try {
+            CtClass ctClass = getJavassistCtClass(declaration);
+            return null != ctClass && ctClass.getClassFile().getInnerAccessFlags() != -1;
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    public static <T extends Node> T getJavaParserWrappedNode(ResolvedTypeDeclaration declaration, Class<T> nodeType) {
+        if (!declaration.getClass().getSimpleName().startsWith("JavaParser")) {
+            return null;
+        }
+        try {
+            Field field = declaration.getClass().getDeclaredField("wrappedNode");
+            field.setAccessible(true);
+            Object wrappedNode = field.get(declaration);
+            if (wrappedNode instanceof Node node) {
+                return nodeType.cast(node);
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    public static CtClass getJavassistCtClass(ResolvedTypeDeclaration declaration) {
+        if (!declaration.getClass().getSimpleName().startsWith("Javassist")) {
+            return null;
+        }
+        try {
             Field field = declaration.getClass().getDeclaredField("ctClass");
             field.setAccessible(true);
             Object value = field.get(declaration);
-            if (!(value instanceof CtClass ctClass)) {
-                return false;
+            if (value instanceof CtClass ctClass) {
+                return ctClass;
             }
-            return ctClass.getClassFile().getInnerAccessFlags() != -1;
         } catch (Exception ignored) {}
-        return false;
+        return null;
     }
 
     public static String getName(ResolvedType type) {
@@ -322,10 +336,13 @@ public final class AstUtils {
     }
 
     @SneakyThrows
-    public static Class<?> getReflectionClass(ReflectionClassDeclaration classDeclaration) {
-        Field field = ReflectionClassDeclaration.class.getDeclaredField("clazz");
+    public static Class<?> getReflectionClass(ResolvedTypeDeclaration declaration) {
+        if (!declaration.getClass().getSimpleName().startsWith("Reflection")) {
+            throw new UnsupportedOperationException();
+        }
+        Field field = declaration.getClass().getDeclaredField("clazz");
         field.setAccessible(true);
-        return (Class<?>) field.get(classDeclaration);
+        return (Class<?>) field.get(declaration);
     }
 
     public static ResolvedTypeDeclaration tryResolveTypeDeclaration(TypeDeclaration<?> type) {

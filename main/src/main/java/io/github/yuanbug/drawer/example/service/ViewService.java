@@ -1,6 +1,6 @@
 package io.github.yuanbug.drawer.example.service;
 
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
@@ -30,10 +30,10 @@ public class ViewService {
     @Getter
     private final List<MethodListItemView> methodList;
 
-    public ViewService(MethodParser methodParser, WebViewConfig webViewConfig, AstIndexContext context) {
+    public ViewService(MethodParser methodParser, WebViewConfig webViewConfig, AstIndex astIndex) {
         this.methodParser = methodParser;
         this.webViewConfig = webViewConfig;
-        this.methodList = webViewConfig.getMethodListLoader().apply(context).stream()
+        this.methodList = webViewConfig.getMethodListLoader().apply(astIndex).stream()
                 .sorted(webViewConfig.getMethodListSorter())
                 .toList();
     }

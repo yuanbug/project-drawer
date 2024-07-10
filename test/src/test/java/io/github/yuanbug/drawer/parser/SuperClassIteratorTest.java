@@ -15,10 +15,10 @@ public class SuperClassIteratorTest extends BaseTest {
 
     @Test
     void testGetParentClass() {
-        TypeDeclaration<?> root = context.getTypeDeclarationByClassName(GenericMethodFinding.D.class.getName());
+        TypeDeclaration<?> root = astIndex.getTypeDeclarationByClassName(GenericMethodFinding.D.class.getName());
         assertNotNull(root);
         assertTrue(root instanceof ClassOrInterfaceDeclaration);
-        SuperClassIterator iterator = new SuperClassIterator((ClassOrInterfaceDeclaration) root, context);
+        SuperClassIterator iterator = new SuperClassIterator((ClassOrInterfaceDeclaration) root, astIndex);
         assertEquals("C", iterator.next().getNameAsString());
         assertEquals("B", iterator.next().getNameAsString());
         assertEquals("A", iterator.next().getNameAsString());

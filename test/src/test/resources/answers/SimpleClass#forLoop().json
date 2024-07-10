@@ -23,7 +23,7 @@
                     "dependencies": [],
                     "overrides": []
                   },
-                  "callingType": "LIBRARY"
+                  "callingType": "SUPER"
                 }
               ],
               "overrides": []

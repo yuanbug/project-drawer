@@ -2,7 +2,7 @@ package io.github.yuanbug.drawer.parser;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.utils.AstUtils;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ public class SuperClassIterator implements Iterator<ClassOrInterfaceDeclaration>
     private final List<ClassOrInterfaceDeclaration> parents;
     private int cursor;
 
-    public SuperClassIterator(TypeDeclaration<?> type, AstIndexContext context) {
+    public SuperClassIterator(TypeDeclaration<?> type, AstIndex astIndex) {
         cursor = 0;
-        parents = parseParents(type, context);
+        parents = parseParents(type, astIndex);
     }
 
     @Override
@@ -43,8 +43,8 @@ public class SuperClassIterator implements Iterator<ClassOrInterfaceDeclaration>
         return result;
     }
 
-    private List<ClassOrInterfaceDeclaration> parseParents(TypeDeclaration<?> type, AstIndexContext context) {
-        if (null == context || !(type instanceof ClassOrInterfaceDeclaration classOrInterfaceDeclaration)) {
+    private List<ClassOrInterfaceDeclaration> parseParents(TypeDeclaration<?> type, AstIndex astIndex) {
+        if (null == astIndex || !(type instanceof ClassOrInterfaceDeclaration classOrInterfaceDeclaration)) {
             return Collections.emptyList();
         }
         if (classOrInterfaceDeclaration.isInterface()) {
@@ -54,7 +54,7 @@ public class SuperClassIterator implements Iterator<ClassOrInterfaceDeclaration>
         ClassOrInterfaceDeclaration currentDeclaration = classOrInterfaceDeclaration;
         var extendedTypes = currentDeclaration.getExtendedTypes();
         while (!extendedTypes.isEmpty()) {
-            TypeDeclaration<?> typeDeclaration = context.getTypeDeclarationByClassName(AstUtils.getName(extendedTypes.get(0)));
+            TypeDeclaration<?> typeDeclaration = astIndex.getTypeDeclarationByClassName(AstUtils.getName(extendedTypes.get(0)));
             if (!(typeDeclaration instanceof ClassOrInterfaceDeclaration declaration)) {
                 break;
             }

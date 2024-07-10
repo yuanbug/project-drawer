@@ -8,13 +8,14 @@ import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import io.github.yuanbug.drawer.config.AstParsingConfig;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodCallingType;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
 import io.github.yuanbug.drawer.utils.AstUtils;
 import io.github.yuanbug.drawer.utils.MiscUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -25,51 +26,67 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author yuanbug
  */
+@Slf4j
 @Component
 public class MethodParser {
 
-    private final AstIndexContext context;
+    private final AstIndex astIndex;
     private final AstParsingConfig config;
     private final UnsolvedParser unsolvedMethodParser;
     private final InheritMethodParser inheritMethodParser;
 
-    public MethodParser(AstIndexContext context, AstParsingConfig config) {
-        this.context = context;
+    public MethodParser(AstIndex astIndex, AstParsingConfig config) {
+        this.astIndex = astIndex;
         this.config = config;
-        this.unsolvedMethodParser = new UnsolvedParser(context, config);
-        this.inheritMethodParser = new InheritMethodParser(context);
+        this.unsolvedMethodParser = new UnsolvedParser(astIndex, config);
+        this.inheritMethodParser = new InheritMethodParser(astIndex);
     }
 
     private final Map<String, MethodInfo> methods = new ConcurrentHashMap<>(64);
+
+    protected static class MethodParsingContext {
+
+        private final Map<String, MethodInfo> recursionLink = new LinkedHashMap<>();
+
+        private final Set<String> parsedCalling = new HashSet<>();
+
+    }
 
     public MethodInfo parseMethod(String methodId) {
         if (methods.containsKey(methodId)) {
             return methods.get(methodId);
         }
         MethodInfo methodInfo = findMethod(MethodId.parse(methodId))
-                .map(declaration -> parseMethod(declaration, new LinkedHashMap<>()))
+                .map(declaration -> parseMethod(declaration, new MethodParsingContext()))
                 .orElseThrow(() -> new IllegalStateException("找不到方法声明：" + methodId));
         methods.put(methodId, methodInfo);
         return methodInfo;
     }
 
-    protected MethodInfo parseMethod(MethodDeclaration method, Map<String, MethodInfo> link) {
+    protected MethodInfo parseMethod(MethodDeclaration method, MethodParsingContext parsingContext) {
         MethodId methodId = MethodId.from(method);
+        String methodIdStr = methodId.toString();
+        if (methods.containsKey(methodIdStr)) {
+            return methods.get(methodIdStr);
+        }
+        log.info("正在解析方法 {}", methodId);
         MethodInfo methodInfo = MethodInfo.builder()
                 .id(methodId)
-                .dependencies(Collections.emptyList())
                 .declaration(method)
-                .overrides(parseOverrides(method))
+                .dependencies(Collections.emptyList())
+                .overrides(Collections.emptyList())
                 .build();
-        link.put(methodId.toString(), methodInfo);
-        methodInfo.setDependencies(parseMethodDependencies(method, link));
-        link.remove(methodId.toString());
+        methods.put(methodIdStr, methodInfo);
+        parsingContext.recursionLink.put(methodIdStr, methodInfo);
+        methodInfo.setDependencies(parseMethodDependencies(method, parsingContext));
+        methodInfo.setOverrides(parseOverrides(method, parsingContext));
+        parsingContext.recursionLink.remove(methodIdStr);
         return methodInfo;
     }
 
     protected Optional<MethodDeclaration> findMethod(MethodId methodId) {
         // TODO 支持lombok
-        return context.findTypeInIndex(methodId.getClassName()).map(type -> findMethod(type, methodId));
+        return astIndex.findTypeInIndex(methodId.getClassName()).map(type -> findMethod(type, methodId));
     }
 
     protected MethodDeclaration findMethod(TypeDeclaration<?> type, MethodId methodId) {
@@ -77,7 +94,7 @@ public class MethodParser {
         if (null != method) {
             return method;
         }
-        return context.getAllParentTypes(type).values().stream()
+        return astIndex.getAllParentTypes(type).values().stream()
                 .map(superType -> findMethodInThisType(type, methodId))
                 .filter(Objects::nonNull)
                 .findFirst()
@@ -127,29 +144,46 @@ public class MethodParser {
         return candidates.get(0);
     }
 
-
-    protected List<MethodCalling> parseMethodDependencies(MethodDeclaration method, Map<String, MethodInfo> link) {
+    protected List<MethodCalling> parseMethodDependencies(MethodDeclaration method, MethodParsingContext parsingContext) {
         List<MethodCallExpr> methodCallExpressions = method.getBody()
                 .map(block -> block.findAll(MethodCallExpr.class))
                 .orElse(null);
         if (CollectionUtils.isEmpty(methodCallExpressions)) {
             return Collections.emptyList();
         }
-        return methodCallExpressions.stream()
-                .map(expr -> parseCalling(expr, method, link))
-                .filter(Objects::nonNull)
-                .filter(calling -> config.getMethodCallingFilter().test(calling, context))
-                .toList();
+        List<MethodCalling> result = new ArrayList<>();
+        for (MethodCallExpr callExpr : methodCallExpressions) {
+            MethodCalling calling = parseCalling(callExpr, method, parsingContext);
+            if (null == calling) {
+                continue;
+            }
+            String calleeMethodId = Optional.ofNullable(calling.getCallee()).map(MethodInfo::getId).map(MethodId::toString).orElse(null);
+            if (null != calleeMethodId) {
+                if (parsingContext.parsedCalling.contains(calleeMethodId)) {
+                    continue;
+                }
+                parsingContext.parsedCalling.add(calleeMethodId);
+            }
+            if (config.getMethodCallingFilter().test(calling, astIndex)) {
+                result.add(calling);
+            }
+        }
+        parsingContext.parsedCalling.clear();
+        return result;
     }
 
-    protected MethodCalling parseCalling(MethodCallExpr expr, MethodDeclaration callerMethod, Map<String, MethodInfo> link) {
+    protected MethodCalling parseCalling(MethodCallExpr expr, MethodDeclaration callerMethod, MethodParsingContext parsingContext) {
         ResolvedMethodDeclaration calleeMethod = AstUtils.tryResolve(expr);
         if (null == calleeMethod) {
             return adjustUnsolved(unsolvedMethodParser.buildUnsolveMethodCalling(expr, callerMethod), callerMethod);
         }
         ResolvedReferenceTypeDeclaration calleeType = calleeMethod.declaringType();
         MethodId calleeMethodId = MethodId.from(calleeMethod);
-        MethodInfo recursion = link.get(calleeMethodId.toString());
+        String calleeMethodIdStr = calleeMethodId.toString();
+        if (parsingContext.parsedCalling.contains(calleeMethodIdStr)) {
+            return null;
+        }
+        MethodInfo recursion = parsingContext.recursionLink.get(calleeMethodIdStr);
         if (null != recursion) {
             return MethodCalling.recursive(recursion, judgeMethodCallingType(calleeType, AstUtils.findDeclaringType(callerMethod)));
         }
@@ -169,7 +203,7 @@ public class MethodParser {
             return MethodCalling.library(calleeMethodId, calleeMethodDeclaration);
         }
         return MethodCalling.builder()
-                .callee(parseMethod(calleeMethodDeclaration, link))
+                .callee(parseMethod(calleeMethodDeclaration, parsingContext))
                 .callingType(judgeMethodCallingType(calleeType, AstUtils.findDeclaringType(callerMethod)))
                 .build();
     }
@@ -181,11 +215,11 @@ public class MethodParser {
         if (calleeType.equals(AstUtils.tryResolveTypeDeclaration(callerType))) {
             return MethodCallingType.SELF;
         }
-        if (context.isAssignable(calleeType, AstUtils.getName(callerType))) {
+        if (astIndex.isAssignable(calleeType, AstUtils.getName(callerType))) {
             return MethodCallingType.SUPER;
         }
-        String calleeModule = context.getModuleNameByTypeName(AstUtils.getName(calleeType));
-        String callerModule = context.getModuleNameByTypeName(AstUtils.getName(callerType));
+        String calleeModule = astIndex.getModuleNameByTypeName(AstUtils.getName(calleeType));
+        String callerModule = astIndex.getModuleNameByTypeName(AstUtils.getName(callerType));
         if (StringUtils.isNotBlank(calleeModule) && StringUtils.isNotBlank(callerModule)) {
             return Objects.equals(calleeModule, callerModule) ? MethodCallingType.BROTHER : MethodCallingType.OUT;
         }
@@ -193,7 +227,7 @@ public class MethodParser {
     }
 
     protected MethodCallingType judgeMethodCallingType(String calleeTypeName, TypeDeclaration<?> callerType) {
-        var calleeType = context.trySolveReferenceTypeDeclaration(calleeTypeName).orElse(null);
+        var calleeType = astIndex.trySolveReferenceTypeDeclaration(calleeTypeName).orElse(null);
         if (null != calleeType) {
             return judgeMethodCallingType(calleeType, callerType);
         }
@@ -201,26 +235,23 @@ public class MethodParser {
         if (calleeTypeName.equals(callerTypeName)) {
             return MethodCallingType.SELF;
         }
-        if (MiscUtils.isPresentAnd(AstUtils.forName(calleeTypeName), byteCode -> context.isAssignable(byteCode, callerTypeName))) {
+        if (MiscUtils.isPresentAnd(AstUtils.forName(calleeTypeName), byteCode -> astIndex.isAssignable(byteCode, callerTypeName))) {
             return MethodCallingType.SUPER;
         }
         return MethodCallingType.LIBRARY;
     }
 
-    protected List<MethodInfo> parseOverrides(MethodDeclaration method) {
+    protected List<MethodInfo> parseOverrides(MethodDeclaration method, MethodParsingContext parsingContext) {
         MethodId methodId = MethodId.from(method);
         TypeDeclaration<?> declaringType = AstUtils.findDeclaringType(method);
         if (!(declaringType instanceof ClassOrInterfaceDeclaration classOrInterfaceDeclaration)) {
             return Collections.emptyList();
         }
-        return config.getDirectlySubTypeParser().apply(classOrInterfaceDeclaration, context)
+        return config.getDirectlySubTypeParser().apply(classOrInterfaceDeclaration, astIndex)
                 .stream()
                 .map(subType -> findMethodInThisType(subType, methodId))
                 .filter(Objects::nonNull)
-                .map(MethodId::from)
-                .map(MethodId::toString)
-                .map(this::parseMethod)
-                .filter(Objects::nonNull)
+                .map(methodDeclaration -> parseMethod(methodDeclaration, parsingContext))
                 .toList();
     }
 

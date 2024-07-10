@@ -21,10 +21,10 @@ public class InheritMethodParserTest extends BaseTest {
         MethodId methodId = MethodId.from(GenericWithMethodTemplatePattern.LoginService.class.getDeclaredMethod("doHandle", GenericWithMethodTemplatePattern.LoginForm.class));
         MethodDeclaration doHandle = methodParser.findMethod(methodId).orElseThrow();
 
-        MethodInheritLinkInfo result = new InheritMethodParser(context).parseParentMethods(doHandle);
+        MethodInheritLinkInfo result = new InheritMethodParser(astIndex).parseParentMethods(doHandle);
 
         assertEquals(doHandle, result.getCurrent());
-        assertEquals(context, result.getContext());
+        assertEquals(astIndex, result.getAstIndex());
         assertEquals(1, result.getFromExtend().size());
         assertEquals(0, result.getFromImpl().size());
         assertEquals(
@@ -39,10 +39,10 @@ public class InheritMethodParserTest extends BaseTest {
         MethodId methodId = MethodId.from(GenericWithMethodTemplatePattern.LoginService.class.getDeclaredMethod("getName"));
         MethodDeclaration doHandle = methodParser.findMethod(methodId).orElseThrow();
 
-        MethodInheritLinkInfo result = new InheritMethodParser(context).parseParentMethods(doHandle);
+        MethodInheritLinkInfo result = new InheritMethodParser(astIndex).parseParentMethods(doHandle);
 
         assertEquals(doHandle, result.getCurrent());
-        assertEquals(context, result.getContext());
+        assertEquals(astIndex, result.getAstIndex());
         assertEquals(0, result.getFromExtend().size());
         assertEquals(1, result.getFromImpl().size());
         assertEquals(

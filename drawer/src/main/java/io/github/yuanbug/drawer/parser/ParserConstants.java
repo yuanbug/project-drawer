@@ -6,7 +6,7 @@ import com.github.javaparser.ast.nodeTypes.NodeWithMembers;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.utils.AstUtils;
@@ -39,7 +39,7 @@ public class ParserConstants {
      * 返回所有直接子类（不包括枚举和record）
      * TODO 直接在AstIndexContext里建立索引
      */
-    public static final BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> ALL_DIRECTLY_SUB_TYPE_PARSER =
+    public static final BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> ALL_DIRECTLY_SUB_TYPE_PARSER =
             (type, context) -> context.getAllTypeDeclaration(ClassOrInterfaceDeclaration.class)
                     .filter(checkingType -> isDirectlySuperType(checkingType, type))
                     .toList();
@@ -60,7 +60,7 @@ public class ParserConstants {
     /**
      * 当且仅当只有一个直接子类时，将其返回（不包括枚举和record）
      */
-    public static final BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> SINGLE_DIRECTLY_SUB_TYPE_PARSER = (type, context) -> {
+    public static final BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> SINGLE_DIRECTLY_SUB_TYPE_PARSER = (type, context) -> {
         List<ClassOrInterfaceDeclaration> subTypes = ALL_DIRECTLY_SUB_TYPE_PARSER.apply(type, context);
         if (subTypes.size() == 1) {
             return subTypes;
@@ -80,7 +80,7 @@ public class ParserConstants {
                 .build();
     }
 
-    public static final Function<AstIndexContext, List<MethodListItemView>> GET_ALL_PUBLIC_INSTANCE_METHODS = context ->
+    public static final Function<AstIndex, List<MethodListItemView>> GET_ALL_PUBLIC_INSTANCE_METHODS = context ->
             context.groupAllTypeByModule().entrySet().stream()
                     .flatMap(kv -> {
                         String moduleName = kv.getKey();
@@ -113,7 +113,7 @@ public class ParserConstants {
     /**
      * 这里没有处理注解加在父类和注解类上的情况
      */
-    public static final Function<AstIndexContext, List<MethodListItemView>> GET_CONTROLLER_REQUEST_MAP_METHODS = context ->
+    public static final Function<AstIndex, List<MethodListItemView>> GET_CONTROLLER_REQUEST_MAP_METHODS = context ->
             context.groupAllTypeByModule().entrySet().stream()
                     .flatMap(kv -> {
                         String moduleName = kv.getKey();

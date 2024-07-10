@@ -4,7 +4,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import io.github.yuanbug.drawer.domain.CodeModule;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.parser.ParserConstants;
 
@@ -46,7 +46,7 @@ public interface AstParsingConfig {
     /**
      * @return 判断方法调用是否需要返回给前端的谓语
      */
-    default BiPredicate<MethodCalling, AstIndexContext> getMethodCallingFilter() {
+    default BiPredicate<MethodCalling, AstIndex> getMethodCallingFilter() {
         return (methodCalling, context) -> true;
     }
 
@@ -61,6 +61,6 @@ public interface AstParsingConfig {
     /**
      * @return 用于获取直接子类的方法
      */
-    BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser();
+    BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser();
 
 }

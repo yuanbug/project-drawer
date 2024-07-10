@@ -17,11 +17,15 @@ import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclar
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclaration;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionInterfaceDeclaration;
 import io.github.yuanbug.drawer.config.AstParsingConfig;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.ast.JavaTypeInfo;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodId;
@@ -54,7 +58,7 @@ import static io.github.yuanbug.drawer.utils.PrimitiveTypeUtils.*;
 @AllArgsConstructor
 @SuppressWarnings({"squid:S3776", "squid:S3516"})
 public class UnsolvedParser {
-    private final AstIndexContext context;
+    private final AstIndex astIndex;
     private final AstParsingConfig config;
 
     private static class NameParsingContext {
@@ -98,7 +102,7 @@ public class UnsolvedParser {
             return AstUtils.getName(callerType);
         }
         // super调用
-        List<JavaTypeInfo> superTypes = new ArrayList<>(context.getAllParentTypes(callerType).values());
+        List<JavaTypeInfo> superTypes = new ArrayList<>(astIndex.getAllParentTypes(callerType).values());
         for (JavaTypeInfo superType : superTypes) {
             if (isMethodExistInThisType(superType, methodName, paramTypes)) {
                 return superType.getClassQualifiedName();
@@ -121,7 +125,7 @@ public class UnsolvedParser {
                         return false;
                     }
                     for (int i = 0; i < checkingParameterTypes.length; i++) {
-                        if (!context.isAssignable(checkingParameterTypes[i], paramTypes.get(i).getClassQualifiedName())) {
+                        if (!astIndex.isAssignable(checkingParameterTypes[i], paramTypes.get(i).getClassQualifiedName())) {
                             return false;
                         }
                     }
@@ -155,7 +159,7 @@ public class UnsolvedParser {
             for (int i = 0; i < paramNum; i++) {
                 Type checkingType = method.getParameter(i).getType();
                 JavaTypeInfo expectedType = paramTypes.get(i);
-                if (!context.isAssignable(checkingType, expectedType.getClassQualifiedName())) {
+                if (!astIndex.isAssignable(checkingType, expectedType.getClassQualifiedName())) {
                     return false;
                 }
             }
@@ -289,7 +293,7 @@ public class UnsolvedParser {
                                 return false;
                             }
                             for (int i = 0; i < paramTypes.size(); i++) {
-                                if (!context.isAssignable(paramTypes.get(i), AstUtils.getName(method.getParameter(i).getType()))) {
+                                if (!astIndex.isAssignable(paramTypes.get(i), AstUtils.getName(method.getParameter(i).getType()))) {
                                     return false;
                                 }
                             }
@@ -298,7 +302,7 @@ public class UnsolvedParser {
                         NodeWithMembers::getMethods
                 ))
                 .map(AstUtils::findDeclaringType)
-                .map(declaration -> JavaTypeInfo.byDeclaration(declaration, context.getInfoByClassName(AstUtils.getName(declaration))))
+                .map(declaration -> JavaTypeInfo.byDeclaration(declaration, astIndex.getInfoByClassName(AstUtils.getName(declaration))))
                 .orElse(null);
     }
 
@@ -448,7 +452,7 @@ public class UnsolvedParser {
         if (null == typeDeclaration) {
             return null;
         }
-        return JavaTypeInfo.byDeclaration(typeDeclaration, context.getInfoByClassName(AstUtils.getName(typeDeclaration)));
+        return JavaTypeInfo.byDeclaration(typeDeclaration, astIndex.getInfoByClassName(AstUtils.getName(typeDeclaration)));
     }
 
     private Optional<JavaTypeInfo> findTypeByNameExpr(NameExpr nameExpr, Node contextNode, NameParsingContext nameParsingContext) {
@@ -525,7 +529,7 @@ public class UnsolvedParser {
         if (isPrimitiveTypeName(name)) {
             return JavaTypeInfo.byByteCode(getPrimitiveTypeByName(name));
         }
-        JavaTypeInfo byIndex = context.findTypeInIndex(name).map(declaration -> JavaTypeInfo.byDeclaration(declaration, context.getInfoByClassName(name))).orElse(null);
+        JavaTypeInfo byIndex = astIndex.findTypeInIndex(name).map(declaration -> JavaTypeInfo.byDeclaration(declaration, astIndex.getInfoByClassName(name))).orElse(null);
         if (null != byIndex) {
             return byIndex;
         }
@@ -1022,10 +1026,23 @@ public class UnsolvedParser {
         if (null == typeDeclaration) {
             return null;
         }
-        if (typeDeclaration instanceof ReflectionClassDeclaration declaration) {
-            return JavaTypeInfo.byByteCode(AstUtils.getReflectionClass(declaration));
+        if (typeDeclaration instanceof ReflectionClassDeclaration || typeDeclaration instanceof ReflectionInterfaceDeclaration) {
+            return JavaTypeInfo.byByteCode(AstUtils.getReflectionClass(typeDeclaration));
         }
-        // TODO
+        if (typeDeclaration instanceof JavaParserInterfaceDeclaration || typeDeclaration instanceof JavaParserClassDeclaration) {
+            ClassOrInterfaceDeclaration declaration = AstUtils.getJavaParserWrappedNode(typeDeclaration, ClassOrInterfaceDeclaration.class);
+            if (null == declaration) {
+                return null;
+            }
+            return JavaTypeInfo.byDeclaration(declaration, astIndex.getInfoByClassName(AstUtils.getName(declaration)));
+        }
+        if (typeDeclaration instanceof JavaParserEnumDeclaration) {
+            EnumDeclaration declaration = AstUtils.getJavaParserWrappedNode(typeDeclaration, EnumDeclaration.class);
+            if (null == declaration) {
+                return null;
+            }
+            return JavaTypeInfo.byDeclaration(declaration, astIndex.getInfoByClassName(AstUtils.getName(declaration)));
+        }
         log.warn("未处理的类型 {}", typeDeclaration.getClass().getSimpleName());
         return null;
     }

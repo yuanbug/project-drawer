@@ -7,7 +7,7 @@ import io.github.yuanbug.drawer.config.AstParsingConfig;
 import io.github.yuanbug.drawer.config.AutoConfiguration;
 import io.github.yuanbug.drawer.config.DefaultAstParsingConfig;
 import io.github.yuanbug.drawer.domain.CodeModule;
-import io.github.yuanbug.drawer.domain.ast.AstIndexContext;
+import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.parser.MethodParser;
 import io.github.yuanbug.drawer.parser.ParserConstants;
 
@@ -28,7 +28,7 @@ public abstract class BaseTest extends AutoConfiguration {
 
     protected final TypeSolver typeSolver;
 
-    protected final AstIndexContext context;
+    protected final AstIndex astIndex;
 
     protected final MethodParser methodParser;
 
@@ -36,8 +36,8 @@ public abstract class BaseTest extends AutoConfiguration {
         this.config = defaultProjectDrawerConfig();
         this.typeSolver = javaParserTypeSolver(this.config);
         this.javaParser = javaParser(typeSolver);
-        this.context = astIndexContext(this.config, this.javaParser, this.typeSolver);
-        this.methodParser = new MethodParser(this.context, this.config);
+        this.astIndex = astIndexContext(this.config, this.javaParser, this.typeSolver);
+        this.methodParser = new MethodParser(this.astIndex, this.config);
     }
 
     @Override
@@ -59,7 +59,7 @@ public abstract class BaseTest extends AutoConfiguration {
         }
 
         @Override
-        public BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
+        public BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
             return ParserConstants.ALL_DIRECTLY_SUB_TYPE_PARSER;
         }
 
