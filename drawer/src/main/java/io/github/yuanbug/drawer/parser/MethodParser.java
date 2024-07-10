@@ -14,6 +14,7 @@ import io.github.yuanbug.drawer.domain.info.MethodCallingType;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
 import io.github.yuanbug.drawer.utils.AstUtils;
+import io.github.yuanbug.drawer.utils.MiscUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -192,9 +193,18 @@ public class MethodParser {
     }
 
     protected MethodCallingType judgeMethodCallingType(String calleeTypeName, TypeDeclaration<?> callerType) {
-        return context.trySolveReferenceTypeDeclaration(calleeTypeName)
-                .map(calleeType -> judgeMethodCallingType(calleeType, callerType))
-                .orElseGet(() -> calleeTypeName.equals(AstUtils.getName(callerType)) ? MethodCallingType.SELF : MethodCallingType.LIBRARY);
+        var calleeType = context.trySolveReferenceTypeDeclaration(calleeTypeName).orElse(null);
+        if (null != calleeType) {
+            return judgeMethodCallingType(calleeType, callerType);
+        }
+        String callerTypeName = AstUtils.getName(callerType);
+        if (calleeTypeName.equals(callerTypeName)) {
+            return MethodCallingType.SELF;
+        }
+        if (MiscUtils.isPresentAnd(AstUtils.forName(calleeTypeName), byteCode -> context.isAssignable(byteCode, callerTypeName))) {
+            return MethodCallingType.SUPER;
+        }
+        return MethodCallingType.LIBRARY;
     }
 
     protected List<MethodInfo> parseOverrides(MethodDeclaration method) {

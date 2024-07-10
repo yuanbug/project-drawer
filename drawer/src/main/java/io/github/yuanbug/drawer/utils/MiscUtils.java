@@ -3,6 +3,8 @@ package io.github.yuanbug.drawer.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.function.Predicate;
+
 /**
  * @author yuanbug
  */
@@ -24,6 +26,13 @@ public final class MiscUtils {
 
     public static <T> T castClass(Object object) {
         return (T) object;
+    }
+
+    public static <T> boolean isPresentAnd(T data, Predicate<T> filter) {
+        if (null == data) {
+            return false;
+        }
+        return filter.test(data);
     }
 
 }
