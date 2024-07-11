@@ -62,6 +62,7 @@ const toGraphData = (methodLink: MethodLink) => {
         toMethods.map(toMethod => ({
           source: from,
           target: toMethod,
+          label: showDependencyType.value ? '实现' : '',
           style: {
             stroke: '#8f8f8f',
             startArrow: {
@@ -75,6 +76,7 @@ const toGraphData = (methodLink: MethodLink) => {
       source: recursion.from,
       target: recursion.to,
       type: recursion.from === recursion.to ? 'loop' : 'quadratic',
+      label: showDependencyType.value ? '递归' : '',
       style: {
         stroke: '#DC143C',
         lineDash: [2, 2],
@@ -151,6 +153,7 @@ const download = () => {
 
 .tool-bar {
   margin-bottom: 5px;
+  height: 30px;
 }
 
 :nth-child(n + 2 of .tool-bar .ant-btn) {
@@ -159,5 +162,10 @@ const download = () => {
 
 .tool-bar .ant-checkbox-wrapper {
   margin-left: 8px;
+  padding-left: 2px;
+}
+
+.tool-bar .ant-checkbox-wrapper:hover span {
+  color: #4096ff;
 }
 </style>

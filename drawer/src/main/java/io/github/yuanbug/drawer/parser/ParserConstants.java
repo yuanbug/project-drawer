@@ -10,6 +10,7 @@ import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.utils.AstUtils;
+import io.github.yuanbug.drawer.utils.MiscUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,7 +77,7 @@ public class ParserConstants {
                         .collect(Collectors.joining(", "))
                 ))
                 .groupName(moduleName)
-                .subGroupName(AstUtils.findDeclaringType(method).getNameAsString())
+                .subGroupName(MiscUtils.getSimpleName(AstUtils.getName(AstUtils.findDeclaringType(method))))
                 .build();
     }
 

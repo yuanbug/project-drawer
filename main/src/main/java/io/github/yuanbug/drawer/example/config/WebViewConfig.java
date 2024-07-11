@@ -9,6 +9,7 @@ import io.github.yuanbug.drawer.domain.view.graph.method.ArgumentView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodView;
 import io.github.yuanbug.drawer.utils.AstUtils;
+import io.github.yuanbug.drawer.utils.MiscUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -64,7 +65,7 @@ public interface WebViewConfig {
         return MethodView.builder()
                 .id(MethodId.from(method).toString())
                 .name("%s#%s(%s)".formatted(
-                        declaringType.getNameAsString(),
+                        MiscUtils.getSimpleName(AstUtils.getName(declaringType)),
                         method.getNameAsString(),
                         arguments.stream()
                                 .map(arg -> arg.getType() + " " + arg.getName())

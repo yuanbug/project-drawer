@@ -12,12 +12,12 @@ import java.util.function.Predicate;
 @SuppressWarnings("unchecked")
 public final class MiscUtils {
 
+    /**
+     * <li> "xxx.yyyy.A" -> "A"
+     * <li> "xxx.yyyy.A$B" -> "A$B"
+     */
     public static String getSimpleName(String typeName) {
-        int docPosition = typeName.lastIndexOf(".");
-        if (docPosition == -1) {
-            return typeName;
-        }
-        return typeName.substring(docPosition + 1);
+        return typeName.substring(typeName.lastIndexOf(".") + 1);
     }
 
     public static <T> Class<T> castClass(Class<?> type) {
