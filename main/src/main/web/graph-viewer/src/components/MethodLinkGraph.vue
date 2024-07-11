@@ -4,10 +4,23 @@
       <Tooltip title="重新绘制">
         <Button type="primary" shape="circle" :icon="h(ReloadOutlined)" size="small" @click="refresh" />
       </Tooltip>
-      <Tooltip title="导出PNG图片">
+      <Tooltip title="导出PNG图片，若结点过多，可尝试SVG模式">
         <Button type="primary" shape="circle" :icon="h(DownloadOutlined)" size="small" @click="download" />
       </Tooltip>
       <Checkbox v-model:checked="showDependencyType">显示依赖类型</Checkbox>
+      <RadioGroup v-model:value="rankdir" size="small" @change="updateRankdir">
+        <RadioButton v-for="key in Object.keys(DagreLayouRankdir)" :key="key" :value="key">
+          {{ DagreLayouRankdir[key as keyof typeof DagreLayouRankdir] }}
+        </RadioButton>
+      </RadioGroup>
+      <RadioGroup v-model:value="renderType" size="small">
+        <Tooltip title="推荐使用，设置后请刷新页面">
+          <RadioButton value="canvas">Canvas渲染 </RadioButton>
+        </Tooltip>
+        <Tooltip title="性能较差，设置后请刷新页面">
+          <RadioButton value="svg">SVG渲染 </RadioButton>
+        </Tooltip>
+      </RadioGroup>
     </div>
     <div class="container-block">
       <div ref="container"></div>
@@ -18,16 +31,16 @@
 <script setup lang="ts">
 import { type PropType, ref, watch, h } from 'vue'
 import { Arrow, Graph } from '@antv/g6'
-import { MethodCallingTypes, type MethodLink } from '@/types'
+import { MethodCallingTypes, type MethodLink, DagreLayouRankdir } from '@/types'
 import { storeToRefs } from 'pinia'
-import { Tooltip, Checkbox, Button } from 'ant-design-vue'
+import { Tooltip, Checkbox, Button, RadioGroup, RadioButton } from 'ant-design-vue'
 import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { useMethodLinkGraphSettingStore } from '@/stores/method-link-graph-setting'
 
 const container = ref<HTMLDivElement | undefined>(undefined)
 const graph = ref<Graph | undefined>(undefined)
 
-const { showDependencyType } = storeToRefs(useMethodLinkGraphSettingStore())
+const { showDependencyType, rankdir, renderType } = storeToRefs(useMethodLinkGraphSettingStore())
 
 const props = defineProps({
   methodLink: {
@@ -106,8 +119,10 @@ const initGraph = () => {
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node'],
     },
+    renderer: renderType.value,
     layout: {
       type: 'dagre',
+      rankdir: rankdir.value,
     },
     fitView: true,
     defaultEdge: {
@@ -118,6 +133,13 @@ const initGraph = () => {
         pointPadding: 200,
       },
     },
+  })
+}
+
+const updateRankdir = () => {
+  graph.value?.updateLayout({
+    type: 'dagre',
+    rankdir: rankdir.value,
   })
 }
 
@@ -134,7 +156,7 @@ const download = () => {
     return
   }
   const zoom = graph.value?.getZoom()
-  // 调整缩放比，使导出的图片更清晰
+  // 调整缩放比，使导出的图片更清晰 TODO 看看设置PixelRatio有没有用
   graph.value?.zoomTo(3)
   graph.value?.downloadFullImage(props.methodLink.rootMethodId, 'image/png', { padding: 5 })
   graph.value?.zoomTo(zoom || 1)
@@ -167,5 +189,9 @@ const download = () => {
 
 .tool-bar .ant-checkbox-wrapper:hover span {
   color: #4096ff;
+}
+
+.tool-bar .ant-radio-group {
+  margin-left: 8px;
 }
 </style>

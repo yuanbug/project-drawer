@@ -1,3 +1,5 @@
+import { Graph } from '@antv/g6'
+
 export interface MethodListItem {
   methodId: string
   groupName: string
@@ -26,6 +28,11 @@ export interface MethodCalling {
   from: string
   to: string
   type: keyof typeof MethodCallingTypes
+}
+
+export const DagreLayouRankdir = {
+  TB: '上下布局',
+  LR: '左右布局',
 }
 
 export interface Method {
