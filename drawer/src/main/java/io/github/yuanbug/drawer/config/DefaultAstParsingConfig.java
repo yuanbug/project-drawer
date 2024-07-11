@@ -5,7 +5,8 @@ import io.github.yuanbug.drawer.domain.CodeModule;
 import io.github.yuanbug.drawer.domain.DependencyJarFile;
 import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.parser.ParserConstants;
-import io.github.yuanbug.drawer.parser.maven.MavenModuleParser;
+import io.github.yuanbug.drawer.parser.module.ModuleParser;
+import io.github.yuanbug.drawer.parser.module.ModuleParserDelegate;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -25,12 +26,12 @@ public class DefaultAstParsingConfig implements AstParsingConfig {
     private static final Set<String> MODULES_TO_IGNORE = Set.of("drawer", "test-cases", "test", "main");
 
     protected final String workPath;
-    protected final MavenModuleParser moduleParser;
+    protected final ModuleParser moduleParser;
     protected final List<CodeModule> codeModules;
 
     public DefaultAstParsingConfig(String workPath) {
         this.workPath = workPath;
-        this.moduleParser = new MavenModuleParser();
+        this.moduleParser = new ModuleParserDelegate();
         this.codeModules = moduleParser.parseModules(new File(workPath), shouldParseDependency(), module -> !MODULES_TO_IGNORE.contains(module.getName()));
     }
 

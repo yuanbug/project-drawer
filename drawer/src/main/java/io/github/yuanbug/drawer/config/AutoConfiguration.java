@@ -76,12 +76,13 @@ public class AutoConfiguration {
         );
         astIndex.seal();
         var classNameToFileInfo = astIndex.getClassNameToFileInfo();
+        int moduleNum = parsingConfig.getModules().size();
         long fileNum = classNameToFileInfo.values().stream()
                 .map(JavaFileAstInfo::getFile)
                 .distinct()
                 .count();
         int typeNum = classNameToFileInfo.keySet().size();
-        log.info("AST索引构建完成，共计从{}个文件中扫描得到{}个类型，耗时{}ms", fileNum, typeNum, timer.next());
+        log.info("AST索引构建完成，共计从{}个模块的{}个文件中扫描得到{}个类型，耗时{}ms", moduleNum, fileNum, typeNum, timer.next());
         return astIndex;
     }
 

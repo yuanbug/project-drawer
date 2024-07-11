@@ -622,7 +622,14 @@ public class UnsolvedParser {
     }
 
     private Method parseMethodInInheritLink(Class<?> type, boolean superOnly, MethodCallExpr methodCallExpression, Node contextNode) {
-        return ReflectUtils.findInInheritLink(type, superOnly, Objects::nonNull, current -> List.of(parseMethod(current, methodCallExpression, contextNode)));
+        return ReflectUtils.findInInheritLink(
+                type,
+                superOnly,
+                Objects::nonNull,
+                current -> Optional.ofNullable(parseMethod(current, methodCallExpression, contextNode))
+                        .map(List::of)
+                        .orElseGet(Collections::emptyList)
+        );
     }
 
     /**
