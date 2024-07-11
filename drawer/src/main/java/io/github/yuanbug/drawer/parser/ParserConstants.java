@@ -45,6 +45,11 @@ public class ParserConstants {
                     .filter(checkingType -> isDirectlySuperType(checkingType, type))
                     .toList();
 
+    /**
+     * 不解析子类
+     */
+    public static final BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> NO_DIRECTLY_SUB_TYPE_PARSER = (type, context) -> Collections.emptyList();
+
     public static boolean isDirectlySuperType(ClassOrInterfaceDeclaration checkingType, ClassOrInterfaceDeclaration superType) {
         if (superType.isInterface()) {
             if (checkingType.isInterface()) {

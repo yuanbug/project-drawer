@@ -5,6 +5,8 @@
 
 ![前端截图](./docs/前端截图.png)
 
+![前端演示](./docs/前端演示.gif)
+
 ## 使用方法
 
 1. 确保 JDK 版本不小于 17。
@@ -25,12 +27,10 @@
    > 
    > 你也可以直接修改 `MyAppConfig` 类的构造方法，将目标项目的路径传给父类构造方法 `super(xxxxxx)` 
 
-6. 如果你的项目不是 maven 项目，请参照[下文](#配置要解析的代码模块)进行模块配置。
-
-7. 启动项目（`ServerApplication`），待控制台输出前端访问地址（[http://localhost:5173](http://localhost:5173)）后通过浏览器访问。
+6. 启动项目（`ServerApplication`），待控制台输出前端访问地址（[http://localhost:5173](http://localhost:5173)）后通过浏览器访问。
    > ![控制台输出前端访问地址](./docs/控制台输出前端访问地址.png)
 
-8. 从页面左侧点击选择入口方法，页面右侧将会显示对应的方法依赖链路。
+7. 从页面左侧点击选择入口方法，页面右侧将会显示对应的方法依赖链路。
 
 ## 配置
 
@@ -39,24 +39,6 @@
 部分配置方法要求你对 javaparser 有一定的了解。
 
 下面列出几个常用的配置。
-
-### 配置要解析的代码模块
-
-默认情况下，本工具启动时会扫描你指定的项目目录，找出所有 `pom.xml` 文件，从而识别出所有代码模块。
-
-如果你的项目不是 maven 项目，就需要在 `MyAppConfig` 中实现 `public List<CodeModule> getModules()` 方法，例如：
-
-```java
-public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfig {
-    @Override
-    public List<CodeModule> getModules() {
-        return List.of(CodeModule.builder()
-                .name("模块名")
-                .srcMainJavaPath(new File("项目的src/main/java目录路径").toPath())
-                .build());
-    }
-}
-```
 
 ### 配置页面左侧需要展示的方法
 
@@ -95,8 +77,28 @@ import io.github.yuanbug.drawer.parser.ParserConstants;
 public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfig {
     @Override
     public BiFunction<ClassOrInterfaceDeclaration, AstIndexContext, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
-        // 这个策略会返回所有直接子类
+        // 这个策略会返回所有直接子类；如果不需要解析覆写方法，可以使用NO_DIRECTLY_SUB_TYPE_PARSER
         return ParserConstants.ALL_DIRECTLY_SUB_TYPE_PARSER;
+    }
+}
+```
+
+### 配置要解析的代码模块
+
+默认情况下，本工具启动时会扫描你指定的项目目录，找出所有 `src/main/java` 目录，从而识别出所有代码模块。
+
+如果你的项目是 Maven 项目，本工具会从 `pom.xml` 文件读取模块名，否则使用目录名称作为模块名。
+
+如果你需要进行自定义，可以在 `MyAppConfig` 中实现 `public List<CodeModule> getModules()` 方法，就像这样：
+
+```java
+public class MyAppConfig extends DefaultAstParsingConfig implements WebViewConfig {
+    @Override
+    public List<CodeModule> getModules() {
+        return List.of(CodeModule.builder()
+                .name("模块名")
+                .srcMainJavaPath(new File("项目的src/main/java目录路径").toPath())
+                .build());
     }
 }
 ```
