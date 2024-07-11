@@ -9,7 +9,9 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import io.github.yuanbug.drawer.domain.ast.AstIndex;
+import io.github.yuanbug.drawer.domain.ast.JavaFileAstInfo;
 import io.github.yuanbug.drawer.utils.SearchUtils;
+import io.github.yuanbug.drawer.utils.StopwatchTimer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -60,6 +62,8 @@ public class AutoConfiguration {
     @ConditionalOnMissingBean(AstIndex.class)
     public AstIndex astIndexContext(AstParsingConfig parsingConfig, JavaParser javaParser, TypeSolver javaParserTypeSolver) {
         AstIndex astIndex = new AstIndex(javaParser, javaParserTypeSolver);
+        log.info("开始构建AST索引");
+        StopwatchTimer timer = StopwatchTimer.start();
         parsingConfig.getModules().forEach(
                 module -> SearchUtils.bfsAll(
                                 module.srcMainJavaPath.toFile(),
@@ -71,6 +75,13 @@ public class AutoConfiguration {
                         .forEach(javaFile -> astIndex.addFileToIndex(javaFile, module))
         );
         astIndex.seal();
+        var classNameToFileInfo = astIndex.getClassNameToFileInfo();
+        long fileNum = classNameToFileInfo.values().stream()
+                .map(JavaFileAstInfo::getFile)
+                .distinct()
+                .count();
+        int typeNum = classNameToFileInfo.keySet().size();
+        log.info("AST索引构建完成，共计从{}个文件中扫描得到{}个类型，耗时{}ms", fileNum, typeNum, timer.next());
         return astIndex;
     }
 

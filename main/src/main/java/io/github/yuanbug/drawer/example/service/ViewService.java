@@ -10,7 +10,9 @@ import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodView;
 import io.github.yuanbug.drawer.example.config.WebViewConfig;
 import io.github.yuanbug.drawer.parser.MethodParser;
+import io.github.yuanbug.drawer.utils.StopwatchTimer;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import java.util.function.Supplier;
 /**
  * @author yuanbug
  */
+@Slf4j
 @Service
 public class ViewService {
 
@@ -33,9 +36,14 @@ public class ViewService {
     public ViewService(MethodParser methodParser, WebViewConfig webViewConfig, AstIndex astIndex) {
         this.methodParser = methodParser;
         this.webViewConfig = webViewConfig;
-        this.methodList = webViewConfig.getMethodListLoader().apply(astIndex).stream()
+        log.info("开始构建方法列表");
+        StopwatchTimer timer = StopwatchTimer.start();
+        var methods = webViewConfig.getMethodListLoader().apply(astIndex);
+        log.info("共计{}个方法，方法列表获取耗时{}ms", methods.size(), timer.next());
+        this.methodList = methods.stream()
                 .sorted(webViewConfig.getMethodListSorter())
                 .toList();
+        log.info("方法列表构建完成，排序耗时{}ms", timer.next());
     }
 
     public MethodLinkView getMethodLink(String methodId) {

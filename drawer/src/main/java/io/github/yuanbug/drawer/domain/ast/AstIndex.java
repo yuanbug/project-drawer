@@ -20,6 +20,7 @@ import io.github.yuanbug.drawer.utils.MiscUtils;
 import io.github.yuanbug.drawer.utils.PrimitiveTypeUtils;
 import io.github.yuanbug.drawer.utils.ReflectUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import static java.util.stream.Collectors.*;
 /**
  * @author yuanbug
  */
+@Slf4j
 @Getter
 public class AstIndex {
 
@@ -64,16 +66,16 @@ public class AstIndex {
         if (null == ast) {
             return;
         }
+        var typeDeclarations = ast.findAll(TypeDeclaration.class);
+        if (typeDeclarations.isEmpty()) {
+            return;
+        }
         JavaFileAstInfo info = JavaFileAstInfo.builder()
                 .file(javaFile)
                 .ast(ast)
                 .moduleName(ofModule.name)
                 .build();
-        var classDeclarations = ast.findAll(TypeDeclaration.class);
-        if (classDeclarations.isEmpty()) {
-            return;
-        }
-        for (TypeDeclaration<?> typeDeclaration : classDeclarations) {
+        for (TypeDeclaration<?> typeDeclaration : typeDeclarations) {
             classNameToFileInfo.put(AstUtils.getName(typeDeclaration), info);
         }
         fileToFileInfo.put(javaFile, info);
@@ -339,6 +341,7 @@ public class AstIndex {
             return isAssignable(referenceType, expectedSubTypeName);
         }
         // TODO 完善分支
+        log.warn("未处理的类型 {}", expectedSuperType.getClass().getSimpleName());
         return AstUtils.getName(expectedSuperType).equals(expectedSubTypeName);
     }
 
