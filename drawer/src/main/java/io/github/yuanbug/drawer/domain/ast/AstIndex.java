@@ -3,6 +3,7 @@ package io.github.yuanbug.drawer.domain.ast;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.nodeTypes.NodeWithExtends;
 import com.github.javaparser.ast.nodeTypes.NodeWithImplements;
@@ -13,6 +14,9 @@ import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclaration;
 import io.github.yuanbug.drawer.domain.CodeModule;
 import io.github.yuanbug.drawer.utils.AstUtils;
@@ -339,6 +343,12 @@ public class AstIndex {
         }
         if (expectedSuperType instanceof ResolvedReferenceType referenceType) {
             return isAssignable(referenceType, expectedSubTypeName);
+        }
+        if (expectedSuperType instanceof JavaParserClassDeclaration || expectedSuperType instanceof JavaParserInterfaceDeclaration) {
+            return isAssignable(AstUtils.getJavaParserWrappedNode(expectedSuperType, ClassOrInterfaceDeclaration.class), expectedSubTypeName);
+        }
+        if (expectedSuperType instanceof JavaParserEnumDeclaration) {
+            return isAssignable(AstUtils.getJavaParserWrappedNode(expectedSuperType, EnumDeclaration.class), expectedSubTypeName);
         }
         // TODO 完善分支
         log.warn("未处理的类型 {}", expectedSuperType.getClass().getSimpleName());
