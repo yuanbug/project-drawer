@@ -4,6 +4,9 @@
       <Tooltip title="重新绘制">
         <Button type="primary" shape="circle" :icon="h(ReloadOutlined)" size="small" @click="refresh" />
       </Tooltip>
+      <Tooltip title="导出PNG图片">
+        <Button type="primary" shape="circle" :icon="h(DownloadOutlined)" size="small" @click="download" />
+      </Tooltip>
       <Checkbox v-model:checked="showDependencyType">显示依赖类型</Checkbox>
     </div>
     <div class="container-block">
@@ -18,7 +21,7 @@ import { Arrow, Graph } from '@antv/g6'
 import { MethodCallingTypes, type MethodLink } from '@/types'
 import { storeToRefs } from 'pinia'
 import { Tooltip, Checkbox, Button } from 'ant-design-vue'
-import { ReloadOutlined } from '@ant-design/icons-vue'
+import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { useMethodLinkGraphSettingStore } from '@/stores/method-link-graph-setting'
 
 const container = ref<HTMLDivElement | undefined>(undefined)
@@ -123,6 +126,17 @@ const refresh = () => {
 }
 
 watch(() => props.methodLink, refresh)
+
+const download = () => {
+  if (!props.methodLink) {
+    return
+  }
+  const zoom = graph.value?.getZoom()
+  // 调整缩放比，使导出的图片更清晰
+  graph.value?.zoomTo(3)
+  graph.value?.downloadFullImage(props.methodLink.rootMethodId, 'image/png', { padding: 5 })
+  graph.value?.zoomTo(zoom || 1)
+}
 </script>
 
 <style lang="css">
@@ -139,7 +153,11 @@ watch(() => props.methodLink, refresh)
   margin-bottom: 5px;
 }
 
-.ant-checkbox-wrapper {
+:nth-child(n + 2 of .tool-bar .ant-btn) {
+  margin-left: 8px;
+}
+
+.tool-bar .ant-checkbox-wrapper {
   margin-left: 8px;
 }
 </style>
