@@ -21,8 +21,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MavenCommandInvoker {
 
-    private static final Pattern DEPENDENCY_LIST_PATTERN = Pattern.compile("^[\\s\\S]+\\[INFO] The following files have been resolved:\n([\\s\\S]+)\\[INFO] BUILD SUCCESS[\\s\\S]+$");
     private static final Pattern DEPENDENCY_JAR_PATTERN = Pattern.compile("\\[INFO]\\s+(.*?):(.*?):jar:(.*?):(?:compile|provided)");
+    private static final String MVN_REPOSITORY_LOCATION_QUERY_CMD
+            = "mvn help:evaluate"
+            + " " + "-D" + "expression=settings.localRepository"
+            + " " + "-q"
+            + " " + "-D" + "forceStdout";
 
     private final Path repositoryPath;
     private final boolean invokable;
@@ -47,11 +51,7 @@ public class MavenCommandInvoker {
                 log.warn("解析依赖失败 {}", pomFile);
                 return Collections.emptyList();
             }
-            Matcher listMatcher = DEPENDENCY_LIST_PATTERN.matcher(getResult(process.getInputStream()));
-            if (!listMatcher.matches()) {
-                return Collections.emptyList();
-            }
-            return parseCompileDependencies(listMatcher.group(1));
+            return parseCompileDependencies(getResult(process.getInputStream()));
         } catch (Exception ignored) {}
         return Collections.emptyList();
     }
@@ -90,7 +90,7 @@ public class MavenCommandInvoker {
 
     private Path getRepositoryPath() {
         try {
-            Process process = new ProcessBuilder("cmd", "/C", "mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout").start();
+            Process process = new ProcessBuilder("cmd", "/C", MVN_REPOSITORY_LOCATION_QUERY_CMD).start();
             if (0 != process.waitFor()) {
                 return null;
             }

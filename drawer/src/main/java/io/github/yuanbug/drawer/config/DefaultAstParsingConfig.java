@@ -13,8 +13,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -48,10 +50,12 @@ public class DefaultAstParsingConfig implements AstParsingConfig {
                 .collect(Collectors.groupingBy(DependencyJarFile::getId))
                 .values().stream()
                 .filter(jars -> {
-                    if (jars.size() == 1) {
+                    Map<String, DependencyJarFile> jarsByVersion = distinctByVersion(jars);
+                    if (jarsByVersion.size() == 1) {
                         return true;
                     }
-                    log.warn("jar包存在多个版本 {}", jars.stream().map(DependencyJarFile::getJarFile).map(File::getName).toList());
+                    DependencyJarFile first = jars.getFirst();
+                    log.warn("jar包{}存在多个版本 {}", first.getGroupId() + ":" + first.getArtifactId(), jarsByVersion.keySet());
                     return false;
                 })
                 .flatMap(Collection::stream)
@@ -63,6 +67,14 @@ public class DefaultAstParsingConfig implements AstParsingConfig {
     @Override
     public BiFunction<ClassOrInterfaceDeclaration, AstIndex, List<ClassOrInterfaceDeclaration>> getDirectlySubTypeParser() {
         return ParserConstants.SINGLE_DIRECTLY_SUB_TYPE_PARSER;
+    }
+
+    private Map<String, DependencyJarFile> distinctByVersion(List<DependencyJarFile> files) {
+        return files.stream().collect(Collectors.toUnmodifiableMap(
+                DependencyJarFile::getVersion,
+                Function.identity(),
+                (one, another) -> one
+        ));
     }
 
 }
