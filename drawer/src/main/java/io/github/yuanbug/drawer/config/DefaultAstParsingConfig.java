@@ -54,8 +54,7 @@ public class DefaultAstParsingConfig implements AstParsingConfig {
                     if (jarsByVersion.size() == 1) {
                         return true;
                     }
-                    DependencyJarFile first = jars.getFirst();
-                    log.warn("jar包{}存在多个版本 {}", first.getGroupId() + ":" + first.getArtifactId(), jarsByVersion.keySet());
+                    log.warn("jar包{}存在多个版本 {}", jars.getFirst().getId(), jarsByVersion.keySet());
                     return false;
                 })
                 .flatMap(Collection::stream)
