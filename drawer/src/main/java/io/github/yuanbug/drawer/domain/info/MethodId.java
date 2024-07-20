@@ -13,7 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -81,11 +84,22 @@ public class MethodId {
         );
     }
 
+    public static String toString(Method method) {
+        return from(method).toString();
+    }
+
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
         return Objects.equals(toString(), object.toString());
+    }
+
+    public static Map<String, MethodDeclaration> group(List<MethodDeclaration> methods) {
+        return methods.stream().collect(Collectors.toUnmodifiableMap(
+                method -> MethodId.from(method).toString(),
+                Function.identity()
+        ));
     }
 
 }

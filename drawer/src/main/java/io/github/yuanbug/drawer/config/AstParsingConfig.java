@@ -54,6 +54,10 @@ public interface AstParsingConfig {
         return true;
     }
 
+    default boolean enableLombokParser() {
+        return false;
+    }
+
     default Set<String> getLogVariableNames() {
         return Set.of("log", "LOGGER", "logger");
     }

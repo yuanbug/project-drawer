@@ -13,6 +13,7 @@ import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodCallingType;
 import io.github.yuanbug.drawer.domain.info.MethodId;
 import io.github.yuanbug.drawer.domain.info.MethodInfo;
+import io.github.yuanbug.drawer.parser.lombok.LombokParser;
 import io.github.yuanbug.drawer.utils.AstUtils;
 import io.github.yuanbug.drawer.utils.MiscUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +35,13 @@ public class MethodParser {
     private final AstParsingConfig config;
     private final UnsolvedParser unsolvedMethodParser;
     private final InheritMethodParser inheritMethodParser;
+    private final LombokParser lombokParser;
 
     public MethodParser(AstIndex astIndex, AstParsingConfig config) {
         this.astIndex = astIndex;
         this.config = config;
-        this.unsolvedMethodParser = new UnsolvedParser(astIndex, config);
+        this.lombokParser = new LombokParser(config);
+        this.unsolvedMethodParser = new UnsolvedParser(astIndex, config, lombokParser);
         this.inheritMethodParser = new InheritMethodParser(astIndex);
     }
 
@@ -85,7 +88,6 @@ public class MethodParser {
     }
 
     protected Optional<MethodDeclaration> findMethod(MethodId methodId) {
-        // TODO 支持lombok
         return astIndex.findTypeInIndex(methodId.getClassName()).map(type -> findMethod(type, methodId));
     }
 
@@ -104,7 +106,7 @@ public class MethodParser {
     protected MethodDeclaration findMethodInThisType(TypeDeclaration<?> type, MethodId methodId) {
         List<MethodDeclaration> candidates = type.findAll(MethodDeclaration.class, method -> inheritMethodParser.parseParentMethods(method).isCompatibleMethod(methodId));
         if (CollectionUtils.isEmpty(candidates)) {
-            return null;
+            return lombokParser.findMethod(type, methodId);
         }
         if (candidates.size() == 1) {
             return candidates.get(0);

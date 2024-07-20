@@ -1,6 +1,7 @@
-package io.github.yuanbug.drawer.parser.maven;
+package io.github.yuanbug.drawer.maven;
 
 import io.github.yuanbug.drawer.domain.DependencyJarFile;
+import io.github.yuanbug.drawer.parser.maven.MavenCommandInvoker;
 import io.github.yuanbug.drawer.utils.JacksonUtils;
 import org.junit.jupiter.api.Test;
 

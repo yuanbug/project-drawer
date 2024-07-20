@@ -29,6 +29,7 @@ import io.github.yuanbug.drawer.domain.ast.AstIndex;
 import io.github.yuanbug.drawer.domain.ast.JavaTypeInfo;
 import io.github.yuanbug.drawer.domain.info.MethodCalling;
 import io.github.yuanbug.drawer.domain.info.MethodId;
+import io.github.yuanbug.drawer.parser.lombok.LombokParser;
 import io.github.yuanbug.drawer.utils.AstUtils;
 import io.github.yuanbug.drawer.utils.PrimitiveTypeUtils;
 import io.github.yuanbug.drawer.utils.ReflectUtils;
@@ -60,6 +61,7 @@ import static io.github.yuanbug.drawer.utils.PrimitiveTypeUtils.*;
 public class UnsolvedParser {
     private final AstIndex astIndex;
     private final AstParsingConfig config;
+    private final LombokParser lombokParser;
 
     private static class NameParsingContext {
 
@@ -148,7 +150,7 @@ public class UnsolvedParser {
     }
 
     private boolean isMethodExistInThisType(TypeDeclaration<?> type, String methodName, List<JavaTypeInfo> paramTypes) {
-        return type.findFirst(MethodDeclaration.class, method -> {
+        return null != type.findFirst(MethodDeclaration.class, method -> {
             if (!method.getNameAsString().equals(methodName)) {
                 return false;
             }
@@ -164,7 +166,7 @@ public class UnsolvedParser {
                 }
             }
             return true;
-        }).isPresent();
+        }).orElseGet(() -> lombokParser.findMethod(type, methodName, paramTypes));
     }
 
     private JavaTypeInfo parseTypeByExpr(Expression expression, Node contextNode) {
