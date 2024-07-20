@@ -1,0 +1,22 @@
+{
+  "id": "io.github.yuanbug.drawer.test.lombok.GetterAnnotationOnTypeParse#getNameAndNumber()",
+  "dependencies": [
+    {
+      "callee": {
+        "id": "io.github.yuanbug.drawer.test.lombok.GetterAnnotationOnTypeParse#getName()",
+        "dependencies": [],
+        "overrides": []
+      },
+      "callingType": "SELF"
+    },
+    {
+      "callee": {
+        "id": "io.github.yuanbug.drawer.test.lombok.GetterAnnotationOnTypeParse#getNumber()",
+        "dependencies": [],
+        "overrides": []
+      },
+      "callingType": "SELF"
+    }
+  ],
+  "overrides": []
+}

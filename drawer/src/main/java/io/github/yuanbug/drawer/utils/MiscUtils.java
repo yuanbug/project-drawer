@@ -3,7 +3,9 @@ package io.github.yuanbug.drawer.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * @author yuanbug
@@ -33,6 +35,14 @@ public final class MiscUtils {
             return false;
         }
         return filter.test(data);
+    }
+
+    public static <K, V, M extends Map<K, V>> M merge(Supplier<? extends M> supplier, Map<K, V>... maps) {
+        M map = supplier.get();
+        for (Map<K, V> source : maps) {
+            map.putAll(source);
+        }
+        return map;
     }
 
 }
