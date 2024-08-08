@@ -37,4 +37,9 @@ public class MethodInfoController {
         }
     }
 
+    @GetMapping("/mermaid")
+    public String getMermaid(String methodId) {
+        return viewService.getMermaid(methodId);
+    }
+
 }
