@@ -138,6 +138,7 @@ public class ViewService {
     public String getMermaid(String methodId) {
         MermaidFlowChartGenerator generator = new MermaidFlowChartGenerator();
         MethodLinkView methodLink = getMethodLink(methodId);
+        generator.addNode(methodId);
         methodLink.getCallings().forEach(calling -> generator.addEdge(calling.getFrom(), calling.getTo()));
         methodLink.getRecursions().forEach(calling -> generator.addEdge(calling.getFrom(), calling.getTo(), MermaidFlowChartLineType.DOTTED, "递归"));
         methodLink.getOverrides().forEach((parent, subs) -> subs.forEach(sub -> generator.addEdge(parent, sub, MermaidFlowChartLineType.MULTI_CIRCLE, "实现")));
