@@ -3,6 +3,7 @@ package io.github.yuanbug.drawer.example.controller;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodLinkView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.example.service.ViewService;
+import io.github.yuanbug.drawer.utils.JacksonUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,7 @@ public class MethodInfoController {
 
     @GetMapping("/mermaid")
     public String getMermaid(String methodId) {
-        return viewService.getMermaid(methodId);
+        return JacksonUtils.toJsonString(viewService.getMermaid(methodId));
     }
 
 }

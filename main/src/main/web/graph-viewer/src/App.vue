@@ -21,22 +21,10 @@ import Methodlist from './components/MethodList.vue'
 import MethodLinkGraph from './components/MethodLinkGraph.vue'
 import { onMounted, ref } from 'vue'
 import type { MethodLink, MethodListItem } from '@/types'
+import { getData } from '@/utils'
 
 const methodList = ref<MethodListItem[]>([])
 const graphMethodLink = ref<MethodLink | undefined>(void 0)
-
-function getData<T>(url: string, name: string, callback: (data: T) => void, finalAction?: () => void) {
-  fetch(url, { method: 'GET' })
-    .then(response => {
-      if (!response.ok) {
-        message.warn(`${name}出错`)
-        return undefined
-      }
-      return response.json() as unknown as T
-    })
-    .then(data => data && callback(data))
-    .finally(() => finalAction?.())
-}
 
 onMounted(() => {
   getData<MethodListItem[]>('api/method-info/list', '获取方法列表', data => (methodList.value = data))
