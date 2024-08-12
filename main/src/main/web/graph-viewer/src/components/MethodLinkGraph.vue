@@ -7,6 +7,9 @@
       <Tooltip title="导出PNG图片，若结点过多，可尝试SVG模式">
         <Button type="primary" shape="circle" :icon="h(DownloadOutlined)" size="small" @click="download" />
       </Tooltip>
+      <Tooltip title="生成Mermaid流程图">
+        <Button type="primary" size="small" @click="showMermaird">Mermaid</Button>
+      </Tooltip>
       <Checkbox v-model:checked="showDependencyType">显示依赖类型</Checkbox>
       <RadioGroup v-model:value="rankdir" size="small" @change="updateRankdir">
         <RadioButton v-for="key in Object.keys(DagreLayouRankdir)" :key="key" :value="key">
@@ -25,6 +28,9 @@
     <div class="container-block">
       <div ref="container"></div>
     </div>
+    <Modal v-model:open="showMermaidView" :footer="null" :closable="false" width="90vw">
+      <MermaidView :code="mermaidCode" />
+    </Modal>
   </div>
 </template>
 
@@ -33,12 +39,16 @@ import { type PropType, ref, watch, h } from 'vue'
 import { Arrow, Graph } from '@antv/g6'
 import { MethodCallingTypes, type MethodLink, DagreLayouRankdir } from '@/types'
 import { storeToRefs } from 'pinia'
-import { Tooltip, Checkbox, Button, RadioGroup, RadioButton } from 'ant-design-vue'
+import { Tooltip, Checkbox, Button, RadioGroup, RadioButton, Modal } from 'ant-design-vue'
 import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { useMethodLinkGraphSettingStore } from '@/stores/method-link-graph-setting'
+import MermaidView from '@/components/MermaidView.vue'
+import { getData } from '@/utils'
 
 const container = ref<HTMLDivElement | undefined>(undefined)
 const graph = ref<Graph | undefined>(undefined)
+const showMermaidView = ref(false)
+const mermaidCode = ref('')
 
 const { showDependencyType, rankdir, renderType } = storeToRefs(useMethodLinkGraphSettingStore())
 
@@ -160,6 +170,17 @@ const download = () => {
   graph.value?.zoomTo(3)
   graph.value?.downloadFullImage(props.methodLink.rootMethodId, 'image/png', { padding: 5 })
   graph.value?.zoomTo(zoom || 1)
+}
+
+const showMermaird = () => {
+  const methodId = props.methodLink?.rootMethodId
+  if (!methodId) {
+    return
+  }
+  getData<string>(`api/method-info/mermaid?methodId=${encodeURIComponent(methodId)}`, '获取Mermaid代码', data => {
+    mermaidCode.value = data
+    showMermaidView.value = true
+  })
 }
 </script>
 

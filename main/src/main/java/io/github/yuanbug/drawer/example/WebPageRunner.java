@@ -53,7 +53,7 @@ public class WebPageRunner {
             standard.interrupt();
             error.interrupt();
             stop(process);
-            System.out.println("[⚪|nodejs] exit");
+            System.out.println("[⚪|nodejs] 已关闭进程");
         }));
     }
 

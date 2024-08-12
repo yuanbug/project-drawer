@@ -13,8 +13,10 @@
   "dependencies": {
     "@antv/g6": "4.8.21",
     "ant-design-vue": "4.x",
+    "mermaid": "^10.9.1",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
+    "svg-pan-zoom": "^3.6.1",
     "vue": "^3.4.21"
   },
   "devDependencies": {

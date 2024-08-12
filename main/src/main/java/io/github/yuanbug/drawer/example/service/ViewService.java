@@ -9,6 +9,8 @@ import io.github.yuanbug.drawer.domain.view.graph.method.MethodLinkView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodListItemView;
 import io.github.yuanbug.drawer.domain.view.graph.method.MethodView;
 import io.github.yuanbug.drawer.example.config.WebViewConfig;
+import io.github.yuanbug.drawer.example.utils.MermaidFlowChartGenerator;
+import io.github.yuanbug.drawer.example.utils.MermaidFlowChartLineType;
 import io.github.yuanbug.drawer.parser.MethodParser;
 import io.github.yuanbug.drawer.utils.StopwatchTimer;
 import lombok.Getter;
@@ -128,6 +130,18 @@ public class ViewService {
                     result.computeIfAbsent(method.getId().toString(), k -> new ArrayList<>()).addAll(overrides);
                 }
         );
+    }
+
+    /**
+     * TODO 考虑用subgraph做一下按类分组
+     */
+    public String getMermaid(String methodId) {
+        MermaidFlowChartGenerator generator = new MermaidFlowChartGenerator();
+        MethodLinkView methodLink = getMethodLink(methodId);
+        methodLink.getCallings().forEach(calling -> generator.addEdge(calling.getFrom(), calling.getTo()));
+        methodLink.getRecursions().forEach(calling -> generator.addEdge(calling.getFrom(), calling.getTo(), MermaidFlowChartLineType.DOTTED, "递归"));
+        methodLink.getOverrides().forEach((parent, subs) -> subs.forEach(sub -> generator.addEdge(parent, sub, MermaidFlowChartLineType.MULTI_CIRCLE, "实现")));
+        return generator.getChart();
     }
 
 }
