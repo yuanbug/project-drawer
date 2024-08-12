@@ -1,8 +1,8 @@
 <template>
   <div class="mermaid-view">
-    <p>图片仅供预览，建议将代码复制到mermaid编辑器使用</p>
     <div>
       <div class="mermaid-code">
+        <p>图片仅供预览，建议将代码复制到mermaid编辑器使用</p>
         <pre>{{ code }}</pre>
       </div>
       <div id="mermaid-graph" class="mermaid" v-html="svgHtml"></div>
@@ -26,7 +26,14 @@ const svgHtml = ref('')
 const refresh = async () => {
   const { svg } = await mermaid.render('mermaid-svg', props.code || '')
   svgHtml.value = svg
-  nextTick(() => svgPanZoom('#mermaid-svg'))
+  nextTick(() => {
+    const svg = document.getElementById('mermaid-svg')
+    if (!svg) {
+      return
+    }
+    svg.removeAttribute('style')
+    svgPanZoom('#mermaid-svg')
+  })
 }
 
 onMounted(() => {
@@ -46,20 +53,23 @@ watch(() => props.code, refresh)
   float: left;
   overflow: auto;
   margin-right: 40px;
+  height: 80vh;
 }
 
 .mermaid-code pre {
-  max-width: 30vw;
-  height: 80vh;
+  width: 30vw;
+  min-height: 50vh;
 }
 
 .mermaid {
   float: left;
   overflow: auto;
+  width: calc(50vw - 40px);
+  height: 80vh;
 }
 
 .mermaid svg {
-  width: 50vw;
-  height: 80vh;
+  width: 45vw;
+  height: 75vh;
 }
 </style>

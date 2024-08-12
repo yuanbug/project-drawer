@@ -7,6 +7,10 @@
 
 ![前端演示](./docs/前端演示.gif)
 
+你还可以用它生成 [mermaid](https://mermaid.js.org/) 流程图代码，以便于在文档撰写等场景使用。
+
+![Mermaid生成结果截图](./docs/Mermaid生成结果截图.png)
+
 ## 使用方法
 
 1. 确保 JDK 版本不小于 17。
