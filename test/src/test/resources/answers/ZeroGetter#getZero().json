@@ -35,7 +35,7 @@
           "id": "io.github.yuanbug.drawer.test.impl.ZeroGetterWithSuperRecursion#getZero()",
           "dependencies": [
             {
-              "callingType": "BROTHER",
+              "callingType": "SUPER",
               "recursiveAt": "io.github.yuanbug.drawer.test.impl.AbstractZeroGetter#getZero()"
             }
           ],
